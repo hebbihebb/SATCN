@@ -27,8 +27,10 @@ def test_full_pipeline(pipeline):
         corrected_content = f.read()
 
     # Check that the grammatical errors have been corrected
+    assert "gramatical error" not in corrected_content
     assert "grammatical error" in corrected_content
-    assert "mis teak" in corrected_content # Updated assertion
+    assert "misteak" not in corrected_content
+    assert "mis teak." in corrected_content
 
     # Check that the formatting has been preserved
     assert corrected_content.startswith('# This is a heading')
