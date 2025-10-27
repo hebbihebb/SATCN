@@ -3,6 +3,7 @@
 import markdown
 from markdown.treeprocessors import Treeprocessor
 from markdown.extensions import Extension
+import logging
 
 class _TextExtractorTreeprocessor(Treeprocessor):
     """
@@ -62,27 +63,31 @@ class MarkdownParserFilter:
         Processes a Markdown file and returns a dictionary containing the
         extracted text blocks and the parsed tree.
         """
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
 
-        # Reset the markdown instance to clear state from previous runs
-        self.md.reset()
+            # Reset the markdown instance to clear state from previous runs
+            self.md.reset()
 
-        # The convert method will parse the text and run our treeprocessor
-        self.md.convert(content)
+            # The convert method will parse the text and run our treeprocessor
+            self.md.convert(content)
 
-        # The treeprocessor stored the extracted text in the markdown instance
-        text_blocks = getattr(self.md, 'text_blocks', [])
+            # The treeprocessor stored the extracted text in the markdown instance
+            text_blocks = getattr(self.md, 'text_blocks', [])
 
-        # The root of the parsed tree is also available
-        tree = self.md.root
+            # The root of the parsed tree is also available
+            tree = self.md.root
 
-        return {
-            'text_blocks': text_blocks,
-            'tree': tree,
-            'format': 'markdown',
-            'filepath': filepath
-        }
+            return {
+                'text_blocks': text_blocks,
+                'tree': tree,
+                'format': 'markdown',
+                'filepath': filepath
+            }
+        except Exception as e:
+            logging.error(f"Error parsing Markdown file {filepath}: {e}", exc_info=True)
+            raise
 
 class MarkdownOutputGenerator:
     """
@@ -94,24 +99,28 @@ class MarkdownOutputGenerator:
         Takes the data structure with modified text blocks and the ElementTree,
         updates the tree, serializes it back to Markdown, and writes it to a file.
         """
-        # 1. Update the tree with corrected text
-        for block in data['text_blocks']:
-            element = block['metadata']['element']
-            is_tail = block['metadata']['is_tail']
-            if is_tail:
-                element.tail = ' ' + block['content'] if block['content'] else ''
-            else:
-                element.text = block['content']
+        try:
+            # 1. Update the tree with corrected text
+            for block in data['text_blocks']:
+                element = block['metadata']['element']
+                is_tail = block['metadata']['is_tail']
+                if is_tail:
+                    element.tail = ' ' + block['content'] if block['content'] else ''
+                else:
+                    element.text = block['content']
 
-        # 2. Serialize the tree back to Markdown
-        markdown_content = self._serialize_children(data['tree'])
+            # 2. Serialize the tree back to Markdown
+            markdown_content = self._serialize_children(data['tree'])
 
-        # 3. Write to a new file
-        output_filepath = data['filepath'].replace('.md', '_corrected.md')
-        with open(output_filepath, 'w', encoding='utf-8') as f:
-            f.write(markdown_content)
+            # 3. Write to a new file
+            output_filepath = data['filepath'].replace('.md', '_corrected.md')
+            with open(output_filepath, 'w', encoding='utf-8') as f:
+                f.write(markdown_content)
 
-        return {**data, 'output_filepath': output_filepath}
+            return {**data, 'output_filepath': output_filepath}
+        except Exception as e:
+            logging.error(f"Error generating Markdown file for {data.get('filepath', 'Unknown')}: {e}", exc_info=True)
+            raise
 
     def _get_markdown_syntax(self, tag):
         """Returns the prefix and suffix for a given Markdown tag."""
