@@ -4,3 +4,4 @@ pytest
 num2words
 ebooklib
 beautifulsoup4
+pyspellchecker

@@ -4,7 +4,7 @@ import logging
 from .filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
 from .filters.epub_parser import EpubParserFilter, EpubOutputGenerator
 from .filters.grammar_filter import GrammarCorrectionFilter
-# from .filters.spelling_filter import SpellingCorrectionFilter
+from .filters.spelling_filter import SpellingCorrectionFilter
 from .filters.tts_normalizer import TTSNormalizer
 
 # Configure logging
@@ -48,7 +48,7 @@ def main():
     # Define the pipeline
     pipeline = PipelineRunner([
         parser_filter,
-        # SpellingCorrectionFilter(),
+        SpellingCorrectionFilter(),
         GrammarCorrectionFilter(),
         TTSNormalizer(),
         output_generator
