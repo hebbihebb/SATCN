@@ -30,7 +30,7 @@ The proposed pipeline consists of the following six filters, executed in order:
 
 3. **Spelling Correction Filter:** The first text-modification filter. It receives the structured data from the extractor, iterates through the textual content, and applies algorithms to identify and correct spelling errors. This filter operates only on the text, leaving the metadata untouched.
 
-4. **Grammar Correction Filter:** Performs more complex analysis of the text. It identifies and corrects a wide range of grammatical errors, including issues with tense, punctuation, sentence structure, and agreement.
+4. **Grammar Correction Filter:** Performs more complex analysis of the text. It identifies and corrects a wide range of grammatical errors, including issues with tense, punctuation, sentence structure, and agreement. This filter is currently enabled in a restricted, deterministic mode to ensure safety and predictability.
 
 5. **TTS Normalization Filter:** Prepares the text for consumption by a Text-to-Speech engine. It identifies and converts non-standard words (NSWs) — such as dates, times, currency symbols, acronyms, and ordinals — into their fully spelled-out, spoken form. For example, it would transform “$100” into “one hundred dollars.”
 
