@@ -1,6 +1,8 @@
 import argparse
 from .filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
 from .filters.grammar_filter import GrammarCorrectionFilter
+from .filters.spelling_filter import SpellingCorrectionFilter
+from .filters.tts_normalizer import TTSNormalizer
 
 class PipelineRunner:
     def __init__(self, filters):
@@ -20,7 +22,9 @@ def main():
     # Define the pipeline
     pipeline = PipelineRunner([
         MarkdownParserFilter(),
+        SpellingCorrectionFilter(),
         GrammarCorrectionFilter(),
+        TTSNormalizer(),
         MarkdownOutputGenerator()
     ])
 
