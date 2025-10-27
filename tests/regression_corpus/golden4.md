@@ -1,1 +1,1 @@
-This is test file number 4. It has some errrors.
+This is test file number 4. It has some errors.
