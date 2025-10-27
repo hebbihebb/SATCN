@@ -1,47 +1,47 @@
 import pytest
 import os
-import glob
+import filecmp
+import difflib
 from pipeline.pipeline_runner import PipelineRunner
-from pipeline.filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
-from pipeline.filters.grammar_filter import GrammarCorrectionFilter
-from pipeline.filters.spelling_filter import SpellingCorrectionFilter
-from pipeline.filters.tts_normalizer import TTSNormalizer
 
-def find_test_files():
+REGRESSION_CORPUS_DIR = 'tests/regression_corpus'
+
+def find_regression_files():
     """Finds all input files in the regression corpus."""
-    return [f for f in glob.glob('tests/regression_corpus/input*.md') if '_corrected' not in f]
+    input_files = []
+    for filename in os.listdir(REGRESSION_CORPUS_DIR):
+        if filename.startswith('input_') and filename.endswith('.md') and not filename.endswith('_corrected.md'):
+            input_files.append(os.path.join(REGRESSION_CORPUS_DIR, filename))
+    return input_files
 
-@pytest.fixture(scope="session")
-def regression_pipeline():
-    """Initializes the pipeline with all the filters for regression testing."""
-    return PipelineRunner([
-        MarkdownParserFilter(),
-        SpellingCorrectionFilter(),
-        GrammarCorrectionFilter(),
-        TTSNormalizer(),
-        MarkdownOutputGenerator()
-    ])
-
-@pytest.mark.parametrize("input_filepath", find_test_files())
-def test_regression_corpus(regression_pipeline, input_filepath):
+@pytest.mark.parametrize("input_filepath", find_regression_files())
+def test_regression(input_filepath):
     """
-    Tests the full pipeline with a regression test corpus.
+    Runs the pipeline on an input file and compares the output to the golden file.
     """
-    print(f"Running test for {input_filepath}")
-    golden_filepath = input_filepath.replace('input', 'golden')
+    golden_filepath = input_filepath.replace('input_', 'golden_')
 
-    result = regression_pipeline.run(input_filepath)
+    # Run the pipeline
+    runner = PipelineRunner(input_filepath)
+    result = runner.run()
     output_filepath = result['output_filepath']
 
-    assert os.path.exists(output_filepath)
+    # Compare the output to the golden file
+    assert os.path.exists(output_filepath), f"Output file not created for {input_filepath}"
 
+    # To provide a useful diff, we read the contents of both files
     with open(output_filepath, 'r', encoding='utf-8') as f:
-        corrected_content = f.read()
-
+        output_content = f.readlines()
     with open(golden_filepath, 'r', encoding='utf-8') as f:
-        golden_content = f.read()
+        golden_content = f.readlines()
 
-    assert corrected_content == golden_content
+    # Strip trailing newlines to avoid comparison issues
+    output_content = [line.rstrip('\n') for line in output_content]
+    golden_content = [line.rstrip('\n') for line in golden_content]
 
-    # Clean up the generated file
+    diff = list(difflib.unified_diff(golden_content, output_content, fromfile='golden', tofile='output'))
+
+    assert not diff, f"Output differs from golden file for {input_filepath}:\n{''.join(diff)}"
+
+    # Clean up the output file
     os.remove(output_filepath)
