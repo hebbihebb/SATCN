@@ -4,7 +4,7 @@ import logging
 import time
 from .filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
 from .filters.epub_parser import EpubParserFilter, EpubOutputGenerator
-from .filters.grammar_filter import GrammarCorrectionFilter
+from .filters.grammar_filter_safe import GrammarCorrectionFilterSafe
 from .filters.spelling_filter import SpellingCorrectionFilter
 from .filters.tts_normalizer import TTSNormalizer
 from .utils.logging_setup import setup_logging
@@ -28,16 +28,16 @@ class PipelineRunner:
             raise ValueError(f"Unsupported file type '{file_extension}'. Please provide a .md or .epub file.")
 
         return [
-            parser_filter,
-            SpellingCorrectionFilter(),
-            GrammarCorrectionFilter(),
-            TTSNormalizer(),
-            output_generator
+            (parser_filter, False),
+            (SpellingCorrectionFilter(), False),
+            (GrammarCorrectionFilterSafe(), True),
+            (TTSNormalizer(), False),
+            (output_generator, False)
         ]
 
     def run(self):
         data = self.input_filepath
-        for i, f in enumerate(self.filters):
+        for f, returns_stats in self.filters:
             start_time = time.time()
             log_extra = {
                 "filter": f.__class__.__name__,
@@ -48,20 +48,20 @@ class PipelineRunner:
                 "error": None
             }
             try:
-                original_text_blocks = []
-                if i > 0 and 'text_blocks' in data:
-                    original_text_blocks = [block['content'] for block in data.get('text_blocks', [])]
+                original_text_blocks = [block['content'] for block in data.get('text_blocks', [])] if 'text_blocks' in data else []
 
-                data = f.process(data)
+                if returns_stats:
+                    data, stats = f.process(data)
+                    log_extra.update(stats)
+                else:
+                    data = f.process(data)
+
                 end_time = time.time()
                 log_extra['duration_ms'] = int((end_time - start_time) * 1000)
 
                 if 'text_blocks' in data:
-                    # Count changes made by the filter
-                    changes = 0
-                    for i, block in enumerate(data['text_blocks']):
-                        if i < len(original_text_blocks) and block['content'] != original_text_blocks[i]:
-                            changes += 1
+                    changes = sum(1 for i, block in enumerate(data['text_blocks'])
+                                  if i < len(original_text_blocks) and block['content'] != original_text_blocks[i])
                     log_extra['changes'] = changes
 
                 self.logger.info(f"Filter {f.__class__.__name__} executed successfully.", extra={'extra_data': log_extra})
