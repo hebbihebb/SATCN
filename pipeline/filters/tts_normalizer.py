@@ -2,6 +2,7 @@
 
 import re
 from num2words import num2words
+import logging
 
 class TTSNormalizer:
     """
@@ -14,21 +15,26 @@ class TTSNormalizer:
         """
         Processes the data, normalizing each text block for TTS.
         """
-        for block in data['text_blocks']:
-            content = block['content']
+        try:
+            for block in data['text_blocks']:
+                content = block['content']
 
-            # Normalize currency
-            content = re.sub(r'\$(\d+\.\d{2})', self._currency_to_words, content)
+                # Normalize currency
+                content = re.sub(r'\$(\d+\.\d{2})', self._currency_to_words, content)
 
-            # Normalize percentages
-            content = re.sub(r'(\d+)%', self._percent_to_words, content)
+                # Normalize percentages
+                content = re.sub(r'(\d+)%', self._percent_to_words, content)
 
-            # Normalize dates (e.g., "Jan. 1, 2024")
-            content = re.sub(r'(\w{3}\.) (\d{1,2}), (\d{4})', self._date_to_words, content)
+                # Normalize dates (e.g., "Jan. 1, 2024")
+                content = re.sub(r'(\w{3}\.) (\d{1,2}), (\d{4})', self._date_to_words, content)
 
-            block['content'] = content
+                block['content'] = content
 
-        return data
+            return data
+        except Exception as e:
+            logging.error(f"Error during TTS normalization: {e}", exc_info=True)
+            # Continue with the pipeline even if TTS normalization fails
+            return data
 
     def _currency_to_words(self, match):
         amount = match.group(1)

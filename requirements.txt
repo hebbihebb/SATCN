@@ -1,5 +1,6 @@
 Markdown
 language-tool-python
 pytest
-jamspell
 num2words
+ebooklib
+beautifulsoup4
