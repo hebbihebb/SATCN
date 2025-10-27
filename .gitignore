@@ -16,3 +16,7 @@ env/
 
 # Test output
 corpus/*_corrected.md
+tests/regression_corpus/*_corrected.md
+
+# Models
+models/

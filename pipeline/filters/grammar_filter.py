@@ -9,6 +9,7 @@ class GrammarCorrectionFilter:
     def __init__(self):
         # Initialize LanguageTool
         self.tool = language_tool_python.LanguageTool('en-US')
+        self.tool.picky = True
 
     def process(self, data):
         """
