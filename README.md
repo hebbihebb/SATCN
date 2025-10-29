@@ -225,7 +225,7 @@ The development is structured into three distinct phases:
 1. **Setup Project Environment**
 
    * Initialize a Python project with a logical directory structure. Create separate directories for the pipeline (`pipeline/`), filters (`pipeline/filters/`), tests (`tests/`), and any sample documents (`corpus/`).
-   * Set up a virtual environment and install the initial dependencies: `python-markdown` and `language-tool-python`. Ensure that a compatible Java runtime is installed on the development machine.
+   * Set up a virtual environment and install the initial dependencies: `python-markdown` and `language-tool-python`. Ensure that a compatible Java runtime is installed on the development machine. When Java cannot be provisioned (for example in constrained CI environments), configure access to the LanguageTool public API or disable the grammar filter so the pipeline can continue operating in a degraded-but-stable mode.
 
 2. **Implement the Pipeline Runner**
 
