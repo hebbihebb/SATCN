@@ -1,349 +1,275 @@
 # A Strategic Plan for Developing a Reliable, Automated Text Correction and Normalization Application
 
-<!--
-══════════════════════════════════════════════════════════════════��[...]
-IMPLEMENTATION STATUS SUMMARY (Last Updated: 2025-10-29)
-MAINTAINER NOTE (2025-10-29, @hebbihebb): Reviewed and approved.
-══════════════════════════════════════════════════════════════════��[...]
+## Implementation Status Summary *(Last Updated: 2025-10-29)*
 
-✓ FULLY IMPLEMENTED:
-  • Pipes and Filters architecture (pipeline/pipeline_runner.py)
-  • Markdown parser/generator with custom TreeProcessor
-  • EPUB parser/generator with ebooklib + BeautifulSoup
-  • Grammar correction with LanguageTool (safe-mode with whitelisted rules)
-  • Spelling correction (using pyspellchecker)
-  • TTS normalization (currency, dates, times, ordinals, percentages)
-  • Intermediate data structure preserving formatting metadata
-  • Multi-layered testing (unit, integration, regression corpus)
-  • Structured JSON logging
-  • Error handling with graceful degradation
-  • LanguageTool fallback chain (JVM → Public API → Disabled)
-  • Performance benchmarking infrastructure
+**✓ FULLY IMPLEMENTED**
 
-⚠ PARTIALLY IMPLEMENTED / DIFFERS FROM PLAN:
-  • Spelling: Uses pyspellchecker instead of recommended JamSpell
-    (simpler integration, lacks context-awareness)
-  • Grammar: Safe-mode whitelist approach instead of custom rules
-    (more conservative, doesn't provide domain-specific customization)
-  • Markdown: Known issue with nested inline formatting (marked xfail)
-  • EPUB: Only processes <p> tags, not other HTML elements
-  • Performance: Basic caching implemented, advanced config not explored
-  • Continuous improvement: Feedback mechanism exists, but no systematic
-    dependency reviews or domain-specific tuning process
+* Pipes and Filters architecture (`pipeline/pipeline_runner.py`)
+* Markdown parser/generator with custom TreeProcessor
+* EPUB parser/generator with ebooklib + BeautifulSoup
+* Grammar correction with LanguageTool (safe-mode with whitelisted rules)
+* Spelling correction (using pyspellchecker)
+* TTS normalization (currency, dates, times, ordinals, percentages)
+* Intermediate data structure preserving formatting metadata
+* Multi-layered testing (unit, integration, regression corpus)
+* Structured JSON logging
+* Error handling with graceful degradation
+* LanguageTool fallback chain (JVM → Public API → Disabled)
+* Performance benchmarking infrastructure
 
-✗ NOT IMPLEMENTED:
-  • Transformer-based models (T5) - considered future enhancement
-  • Commercial APIs (Grammarly, etc.) - rejected for reliability/privacy
-  • Custom LanguageTool rules - whitelist approach used instead
-  • Advanced abbreviation/acronym handling in TTS normalizer
-  • Monitoring dashboards (logging foundation exists)
+**⚠ PARTIALLY IMPLEMENTED / DIFFERS FROM PLAN**
 
-PHASES COMPLETION:
-  • Phase 1 (Core + Markdown): ✓ COMPLETE
-  • Phase 2 (Accuracy + TTS): ⚠ MOSTLY COMPLETE
-  • Phase 3 (EPUB + Performance): ✓ COMPLETE
+* Spelling: Uses pyspellchecker instead of recommended JamSpell (simpler integration, lacks context-awareness)
+* Grammar: Safe-mode whitelist approach instead of custom rules (more conservative, less domain customization)
+* Markdown: Known issue with nested inline formatting (marked xfail)
+* EPUB: Only processes `<p>` tags, not other HTML elements
+* Performance: Basic caching implemented; advanced config not explored
+* Continuous improvement: Feedback mechanism exists, no systematic dependency reviews or domain-specific tuning yet
 
-See inline comments throughout this document for detailed status of each component.
-══════════════════════════════════════════════════════════════════��[...]
--->
+**✗ NOT IMPLEMENTED**
+
+* Transformer-based models (T5) — future enhancement
+* Commercial APIs (Grammarly, etc.) — rejected for reliability/privacy
+* Custom LanguageTool rules — whitelist approach used instead
+* Advanced abbreviation/acronym handling in TTS normalizer
+* Monitoring dashboards (logging foundation exists)
+
+**PHASES COMPLETION**
+
+* Phase 1 (Core + Markdown): ✓ COMPLETE
+* Phase 2 (Accuracy + TTS): ⚠ MOSTLY COMPLETE
+* Phase 3 (EPUB + Performance): ✓ COMPLETE
+
+See inline status notes throughout this document for component details.
+
+---
 
 ## Section 1: A Scalable Architecture for Text Correction and Normalization
 
-The long-term success and reliability of any software application are determined not by its initial features, but by its underlying architecture. For a text processing application designed for aut[...]  
+The long-term success and reliability of any software application are determined not by its initial features, but by its underlying architecture. For a text processing application designed for automated correction and future expansion, selecting an architecture that prioritizes modularity, testability, and extensibility is paramount. A monolithic design, while perhaps faster to prototype, inevitably becomes brittle, difficult to maintain, and resistant to change. The following architectural blueprint is designed to provide a robust foundation that directly addresses the core requirements of reliability and scalability.
 
 ### 1.1 The Pipes and Filters Architectural Pattern: The Blueprint for Reliability
 
-<!-- ✓ IMPLEMENTED: The Pipes and Filters architecture is fully implemented in pipeline/pipeline_runner.py with modular filters in pipeline/filters/ -->
+*Status: ✓ Implemented — Pipes and Filters in `pipeline/pipeline_runner.py` with modular filters under `pipeline/filters/`.*
 
-The most suitable architectural model for this application is the **Pipes and Filters** pattern. In this pattern, a complex processing task is deconstructed into a chain of discrete, independent p[...]  
+The most suitable architectural model for this application is the **Pipes and Filters** pattern. In this pattern, a complex processing task is deconstructed into a chain of discrete, independent processing elements, known as "filters." These filters are connected sequentially by "pipes," which are channels that pass data from one filter to the next. The output of one filter becomes the input for the subsequent filter in the chain, creating a processing pipeline.
 
-This pattern is a natural and effective fit for the application’s workflow, which can be logically segmented into a series of transformations: reading a file, correcting spelling, correcting gra[...]  
+This pattern is a natural and effective fit for the application’s workflow, which can be logically segmented into a series of transformations: reading a file, correcting spelling, correcting grammar, normalizing text for Text-to-Speech (TTS), and writing the corrected file. The advantages of adopting this pattern from the project’s inception are significant and directly address the stated goals:
 
-* **Modularity and Reusability:** Each processing stage — such as spelling correction or grammar analysis — is encapsulated within its own filter. These filters are self-contained and operate [...]  
+* **Modularity and Reusability:** Each processing stage — such as spelling correction or grammar analysis — is encapsulated within its own filter. These filters are self-contained and operate independently of one another. This separation of concerns means that a filter can be developed, tested, and updated in isolation. For instance, the initial spelling correction filter could be a simple, dictionary-based tool, which can later be replaced with a more sophisticated, context-aware engine without requiring any changes to the grammar correction filter or any other part of the pipeline. This inherent modularity makes the system far easier to manage and debug.
+* **Flexibility and Extensibility:** The pipeline structure is inherently flexible. New processing stages can be inserted into the chain, or existing ones can be reordered with minimal disruption to the overall system. When the time comes to add a new capability, such as a plagiarism checker or a style consistency analyzer, it can be implemented as a new filter and simply added to the pipeline. This architectural choice future-proofs the application, ensuring that it can evolve to meet new requirements without a complete redesign.
+* **Parallelism:** The Pipes and Filters pattern is conducive to parallel processing. While initial implementation may be sequential, the architecture allows for scaling performance by processing multiple documents concurrently, each in its own pipeline instance. This is a crucial consideration for building a system that can handle a high volume of requests efficiently.
 
-* **Flexibility and Extensibility:** The pipeline structure is inherently flexible. New processing stages can be inserted into the chain, or existing ones can be reordered with minimal disruption [...]  
-
-* **Parallelism:** The Pipes and Filters pattern is conducive to parallel processing. While initial implementation may be sequential, the architecture allows for scaling performance by processing [...]  
-
-In the context of Python-based Natural Language Processing (NLP), this pattern is not merely theoretical. Prominent frameworks like spaCy explicitly model their text processing workflow as a pipel[...]  
+In the context of Python-based NLP, this pattern is not merely theoretical. Frameworks like spaCy explicitly model their workflow as a pipeline of components, where each acts as a filter that receives a document object, performs an operation (like part-of-speech tagging or named entity recognition), and passes it on. This demonstrates the pattern’s proven effectiveness in real-world applications.
 
 ### 1.2 Defining the Application's Processing Pipeline
 
-<!-- ✓ IMPLEMENTED: All six filters are implemented and working. The pipeline currently processes both Markdown and EPUB formats. -->
+*Status: ✓ Implemented — All six filters working for Markdown and EPUB.*
 
-Mapping the application's required functionality onto the Pipes and Filters pattern yields a clear, logical sequence of operations. Each of these stages will be implemented as a distinct filter wi[...]  
+Mapping the application's required functionality onto the Pipes and Filters pattern yields a clear, logical sequence of operations. Each of these stages is implemented as a distinct filter.
 
-The proposed pipeline consists of the following six filters, executed in order:
+The pipeline consists of the following six filters, executed in order:
 
-1. **Input Parser:** Entry point of the pipeline. Reads the raw source file (initially Markdown, later EPUB) from disk. It does not interpret the content but prepares it for the next stage.
-   <!-- ✓ DONE: Implemented for both Markdown (markdown_parser.py) and EPUB (epub_parser.py) -->
+1. **Input Parser** — reads the raw source file (Markdown, later EPUB) from disk; prepares it for the next stage.
+   *Status: ✓ Done — Markdown (`markdown_parser.py`) and EPUB (`epub_parser.py`).*
 
-2. **Text Extractor:** Understands the structure of the input file format. It parses the document (e.g., Markdown syntax or EPUB's XHTML structure) and deconstructs it into a structured, intermedi[...]  
-   <!-- ✓ DONE: Uses python-markdown with custom TreeProcessor for .md files, ebooklib + BeautifulSoup for .epub files -->
+2. **Text Extractor** — parses the file structure (Markdown syntax or EPUB’s XHTML) into a structured, intermediate data format separating text from formatting metadata.
+   *Status: ✓ Done — `python-markdown` with custom TreeProcessor for `.md`; `ebooklib` + BeautifulSoup for `.epub`.*
 
-3. **Spelling Correction Filter:** The first text-modification filter. It receives the structured data from the extractor, iterates through the textual content, and applies algorithms to identify [...]  
-   <!-- ✓ DONE: Implemented in spelling_filter.py, but see note in Section 2.2 about library choice -->
+3. **Spelling Correction Filter** — iterates through textual content and corrects spelling errors, touching only text, not metadata.
+   *Status: ✓ Done — `spelling_filter.py` (note JamSpell vs pyspellchecker in §2.2).*
 
-4. **Grammar Correction Filter:** Performs more complex analysis of the text. It identifies and corrects a wide range of grammatical errors, including issues with tense, punctuation, sentence stru[...]  
-   <!-- ✓ DONE: Implemented as GrammarCorrectionFilterSafe with whitelisted safe rules only (typos, punctuation, spacing, casing, simple agreement). Includes fallback mechanism for environments [...]  
+4. **Grammar Correction Filter** — corrects grammar issues using a restricted, deterministic mode for safety.
+   *Status: ✓ Done — `GrammarCorrectionFilterSafe` with whitelisted safe rules (typos, punctuation, spacing, casing, simple agreement) and JVM→API→disabled fallback.*
 
-5. **TTS Normalization Filter:** Prepares the text for consumption by a Text-to-Speech engine. It identifies and converts non-standard words (NSWs) — such as dates, times, currency symbols, acro[...]  
-   <!-- ✓ DONE: Implemented in tts_normalizer.py covering currency, dates, times, ordinals, and percentages -->
+5. **TTS Normalization Filter** — converts non-standard words (dates, times, currency, ordinals, percentages) into spoken forms.
+   *Status: ✓ Done — `tts_normalizer.py`.*
 
-6. **Output Generator:** Final stage of the pipeline. It takes the corrected and normalized intermediate data structure and uses the stored metadata to reconstruct the document in its original fil[...]  
-   <!-- ✓ DONE: Output generators implemented for both Markdown and EPUB. Note: Markdown has a known issue with nested inline formatting (marked xfail in tests). EPUB only processes <p> tags cur[...]  
-
-This defined pipeline creates a clear roadmap for development. Each filter represents a distinct module with a single responsibility, which is a cornerstone of robust and maintainable software des[...]  
+6. **Output Generator** — reconstructs the document using metadata to preserve formatting; writes corrected output.
+   *Status: ✓ Done — generators for Markdown and EPUB. Markdown has a known issue with nested inline formatting (xfail). EPUB currently processes only `<p>` tags.*
 
 ### 1.3 The Critical Data Structure: Beyond Plain Text
 
-<!-- ✓ IMPLEMENTED: The intermediate data structure preserves formatting metadata while allowing text corrections. Implementation uses dictionaries with 'text_blocks' containing content and meta[...]  
+*Status: ✓ Implemented — intermediate structure with `text_blocks` (content + metadata), retaining original parsed trees (ElementTree for Markdown, BeautifulSoup for EPUB).*
 
-A common pitfall in text processing applications is to treat the document as a single, monolithic string of text. Such an approach is fundamentally incompatible with the requirement to preserve d[...]  
+Treating the whole document as a single string destroys structure. The pipeline passes a robust intermediate data structure (list/tree of blocks) where each block has:
 
-Therefore, the "pipe" connecting the filters must carry a data structure far more sophisticated than a simple string. The proposed solution is to use a robust intermediate data structure that rep[...]  
+* `content`: the raw text to correct.
+* `metadata`: formatting/context, e.g., `{'type': 'heading', 'level': 2}` or `{'type': 'list_item', 'ordered': True, 'index': 1}`.
 
-Each object in this structure will represent a distinct block of text from the original document (e.g., a paragraph, a heading, a list item) and will contain at least two key properties:
-
-* `content`: A string containing the raw text of the block. This is the data that the correction and normalization filters will operate on.
-
-* `metadata`: A dictionary or object containing information about the block’s original formatting and context. For example, `{'type': 'heading', 'level': 2}` for a level-two heading, or `{'type[...]  
-
-When the Text Extractor filter processes an input file, its job is to create this list of structured objects. The subsequent correction filters will then iterate through this list, reading from a[...]  
-
-Finally, the Output Generator filter will use this list to perfectly reconstruct the original document. By reading the metadata for each object, it will know exactly how to format the corrected c[...]  
+Filters modify only `content`. The output generator reads `metadata` to rebuild the document faithfully.
 
 ---
 
 ## Section 2: Technology Stack and Tooling Evaluation
 
-Selecting the right tools is as critical as defining the right architecture. The modern NLP landscape offers a vast array of libraries, models, and services, each with distinct trade-offs in accu[...]  
+Selecting the right tools is as critical as the right architecture. Below is the evaluation and the chosen stack optimized for reliability, control, and maintainability.
 
 ### 2.1 The Core Correction Engine: A Tripartite Analysis
 
-The heart of the application is its ability to accurately correct spelling and grammar. This is the most critical technology choice and warrants a detailed comparison of the three primary approac[...]  
-
 #### Approach A: Rule-Based Engines (e.g., `language-tool-python`)
 
-<!-- ✓ IMPLEMENTED: This is the chosen approach. LanguageTool is integrated via language-tool-python with a safe-mode implementation using whitelisted rules. Includes automatic fallback from JV[...]  
+*Status: ✓ Implemented — safe-mode whitelist; fallback chain (JVM → public API → graceful degradation).*
 
-This approach utilizes powerful, open-source engines that rely on a vast, curated set of rules to detect errors. The leading tool in this category is LanguageTool, which is accessible in Python v[...]  
+**Description:** LanguageTool via `language-tool-python` uses curated rules for grammar, spelling, style, and punctuation. The wrapper manages a local Java LT server.
 
-* **Description:** LanguageTool is a mature proofreading engine that uses thousands of meticulously crafted rules, often defined in XML, to identify a wide spectrum of errors in grammar, spelling[...]  
+**Pros:** Deterministic; local/privacy-friendly; zero recurring cost; customizable rules.
+**Cons:** Requires Java; JVM overhead; limited deep nuance.
 
-* **Advantages:**
+#### Approach B: Fine-Tuned Transformers (e.g., T5)
 
-  * **High Predictability:** Rule-based systems are deterministic. A given input will always produce the same output, which is a crucial attribute for reliability in an automated system.
-  * **Local Execution and Data Privacy:** The entire process runs locally on the server. No user data is ever sent to a third-party service, which is a major advantage for privacy and eliminates [...]  
-  * **Cost-Effectiveness:** LanguageTool is open-source (LGPL 2.1 license), making it free to use without any recurring subscription fees or API call charges.
-  * **Customizability:** The system is highly configurable and allows for the creation of custom rules, enabling the application to be tailored to handle specific jargon or stylistic conventions.
+*Status: ✗ Not Implemented — considered future enhancement.*
 
-* **Disadvantages:**
+**Pros:** State-of-the-art accuracy; strong context; can be fine-tuned.
+**Cons:** High complexity; heavy compute (often GPU); potential unpredictability.
 
-  * **Technical Overhead:** It has a dependency on Java, which must be installed on the host system.
-  * **Performance Characteristics:** The underlying Java server introduces a performance overhead. The initial startup of the Java Virtual Machine (JVM) can be slow, though performance for subseq[...]  
-  * **Nuance Limitations:** While comprehensive, a rule-based system may be less adept at understanding and correcting deeply nuanced or complex stylistic errors that rely on a broader semantic u[...]  
+#### Approach C: Commercial APIs (Grammarly, Ginger, Trinka)
 
-#### Approach B: Fine-Tuned Transformer Models (e.g., T5 on Hugging Face)
+*Status: ✗ Not Implemented — rejected for reliability/privacy.*
 
-<!-- ⚠ NOT IMPLEMENTED: This approach was considered but not implemented. The rule-based approach was deemed sufficient for current needs. This remains a potential future enhancement if higher [...]  
-
-This approach leverages the power of large-scale neural networks, specifically Transformer models, which have become the state of the art in many NLP tasks, including Grammatical Error Correction[...]  
-
-* **Description:** Models like T5 (Text-to-Text Transfer Transformer) are designed for sequence-to-sequence tasks, making them well-suited for transforming incorrect text into correct text. A lar[...]  
-
-* **Advantages:**
-
-  * **State-of-the-Art Accuracy:** When properly implemented, these models can achieve extremely high levels of accuracy, often surpassing rule-based systems by learning complex linguistic patter[...]  
-  * **Deep Contextual Understanding:** The Transformer architecture is designed to understand the context of words within a sentence, allowing it to make more sophisticated and nuanced correction[...]  
-  * **Extensive Customization:** These models can be further fine-tuned on custom, domain-specific datasets (e.g., legal or medical texts) to achieve very high accuracy for a particular niche.
-
-* **Disadvantages:**
-
-  * **High Implementation Complexity:** Effectively deploying and managing these models requires significant expertise in the machine learning ecosystem, including libraries like PyTorch or Tenso[...]  
-  * **Significant Resource Requirements:** Transformer models are computationally intensive. Achieving acceptable inference speeds often requires powerful hardware, typically a GPU. This increase[...]  
-  * **Potential for Unpredictability:** These generative models can sometimes produce unexpected or “hallucinated” corrections that are grammatically plausible but semantically incorrect. Thi[...]  
-
-#### Approach C: Commercial APIs (e.g., Grammarly, Ginger, Trinka)
-
-<!-- ✗ NOT IMPLEMENTED: This approach was rejected due to reliability and privacy concerns. -->
-
-This approach outsources the correction logic to a specialized third-party service, which is accessed via an API.
-
-* **Description:** Companies like Grammarly, Ginger, and Trinka offer powerful grammar and spelling correction services through commercial APIs. Integration typically involves making a simple HTT[...]  
-
-* **Advantages:**
-
-  * **Simplicity of Integration:** Often the quickest way to add high-quality grammar correction to an application, requiring only basic knowledge of making API calls.
-  * **Potentially Highest Out-of-the-Box Accuracy:** These services use highly sophisticated, proprietary models that are continuously updated and trained on vast amounts of data, often leading t[...]  
-  * **No Local Resource Burden:** All the heavy computational work is performed on the provider’s servers, eliminating the need for powerful local hardware.
-
-* **Disadvantages:**
-
-  * **Critical Reliability Risks:** This approach introduces a hard dependency on an external service. Any network issues, API downtime, changes in the API contract, or rate limiting imposed by t[...]  
-  * **Data Privacy Concerns:** The text being processed must be sent over the internet to a third party. This can be a significant privacy and security concern, especially if the application hand[...]  
-  * **Recurring Costs:** These services are typically subscription-based, with costs often scaling with the volume of API calls. This introduces an ongoing operational expense.
-  * **Limited Customizability:** Customization is usually limited to adding words to a personal dictionary. There is no ability to modify the underlying correction rules or models.
+**Pros:** Simple integration; strong out-of-box accuracy; no local compute.
+**Cons:** External dependency & downtime risk; privacy concerns; recurring cost; limited customization.
 
 ### 2.2 Component-Level Library Recommendations
 
-Based on the architectural plan and the analysis of core technologies, the following libraries are recommended for each filter in the pipeline.
-
 #### Input Parser & Text Extractor (Markdown)
 
-<!-- ✓ IMPLEMENTED: Custom TreeProcessor approach has been implemented in markdown_parser.py. However, there is a known issue with nested inline formatting (e.g., bold+italic) causing text dupl[...]  
+*Status: ✓ Implemented — custom TreeProcessor in `markdown_parser.py`; known nested inline formatting issue (xfail).*
 
-The primary challenge for Markdown processing is not just parsing the text, but modifying it and then reconstructing the file while perfectly preserving the original formatting. Standard librarie[...]  
-
-The most robust and flexible solution is to leverage the Extension API provided by the `python-markdown` library. Specifically, a custom `Treeprocessor` extension should be developed. This type o[...]  
-
-Workflow:
-
-1. The `InputParser` uses `python-markdown` to parse the `.md` file into an `ElementTree`.
-2. The `TextExtractor` (implemented as a `Treeprocessor`) traverses this tree, identifying all nodes that contain text. It extracts the text and its structural metadata (e.g., “this is a paragr[...]  
-3. After the correction filters have modified the text within this data structure, the `OutputGenerator` (also a `Treeprocessor`) traverses the `ElementTree` again, writing the corrected text bac[...]  
-4. Finally, a custom renderer is used to convert the modified `ElementTree` back into a Markdown string. This approach provides the granular control necessary to modify content while rigorously p[...]  
+Round-trip preservation requires working on the parsed tree (ElementTree) with custom extract/write processors and a Markdown renderer, not opinionated reformatters.
 
 #### Input Parser & Text Extractor (EPUB)
 
-<!-- ✓ IMPLEMENTED: EPUB support is fully implemented in epub_parser.py using ebooklib and BeautifulSoup. However, current implementation only extracts and processes text from <p> tags. Other t[...]  
+*Status: ✓ Implemented — `epub_parser.py` using EbookLib + BeautifulSoup; currently only `<p>` tags.*
 
-The structure of an EPUB file is well-defined. It is fundamentally a ZIP archive containing a collection of (X)HTML files, CSS, images, and metadata files that define the book's structure. The re[...]  
-
-The recommended approach is:
-
-* Use `EbookLib` to open the `.epub` file and iterate through its contents.
-* The text of the book is contained within items of type `ebooklib.ITEM_DOCUMENT`.
-* The `TextExtractor` will loop through these document items (which are essentially HTML files). For each item:
-
-  * Use a robust HTML parsing library, `BeautifulSoup`, to parse the content.
-  * Extract text from relevant tags (for example `<p>` for paragraphs), while ignoring structural or non-textual elements.
-  * Store the extracted text, along with its location (e.g., the source HTML file and its position), in the intermediate data structure.
-
-The `OutputGenerator` will perform the reverse process: write the corrected text back into the parsed `BeautifulSoup` objects and then use `EbookLib` to save the modified EPUB archive.
+Open EPUB with EbookLib, parse document items (`ITEM_DOCUMENT`), extract text with BeautifulSoup, store locations, then write back and `epub.write_epub()`.
 
 #### Spelling Correction Filter
 
-<!-- ⚠ IMPLEMENTATION DIFFERS: The current implementation uses pyspellchecker instead of JamSpell. While pyspellchecker is simpler to integrate and has no training requirements, it lacks the co[...]  
+*Status: ⚠ Differs — using pyspellchecker (simple, no context) vs planned JamSpell (context-aware, trainable).*
 
-For a fully automated tool, a simple dictionary-based spell checker like `pyspellchecker` is insufficient. It lacks contextual understanding and is prone to making incorrect "corrections" by flag[...]  
-
-A superior choice is **JamSpell**, a context-aware spell-checking library. JamSpell is built on a language model, which allows it to consider the surrounding words when evaluating a potential mis[...]  
-
-This filter should be placed early in the pipeline to correct obvious typos before the more complex grammar analysis.
+JamSpell remains a good upgrade path to reduce false positives on domain jargon.
 
 #### TTS Normalization Filter
 
-<!-- ✓ IMPLEMENTED: Rule-based TTS normalization is implemented in tts_normalizer.py using regular expressions and the num2words library. Covers the main categories listed below. Abbreviation a[...]  
-
-Text normalization for TTS is a distinct and challenging problem that is often a major source of perceived quality degradation in synthesized speech. It involves converting non-standard words (NS[...]  
-
-* `King George VI` → "King George the sixth"
-* `$5.50` → "five dollars and fifty cents"
-* `150lb` → "one hundred fifty pounds"
-
-This task is not handled by general-purpose grammar correctors. The research literature shows that early and effective TTS systems relied heavily on hand-written grammars and rule-based systems t[...]  
-
-The `TTSNormalizer` filter will be a dedicated module that uses a series of regular expressions to identify and replace common patterns of NSWs. It should be developed iteratively, starting with [...]  
-
-* **Currency:** Recognizing symbols like `$`, `£`, `€` and converting amounts to words.
-* **Dates and Times:** Handling formats like `Feb 6, 1952` or `15:30`.
-* **Numbers and Ordinals:** Correctly verbalizing cardinals, ordinals (`1st`, `2nd`), and large numbers.
-* **Abbreviations and Acronyms:** Expanding common abbreviations (e.g., `St.` to `Street` or `Saint` based on context) and handling acronyms.
-
-This filter will be the final text-modification step in the pipeline, ensuring the output is fully prepared for a TTS engine.
+*Status: ✓ Implemented — regex + `num2words`; handles currency, dates, times, ordinals, percentages. Advanced acronym handling is future work.*
 
 ### Table 1: Comparative Analysis of Core Correction Engines
 
-To summarize the decision-making process for the application’s core engine, the following table conceptually compares the three main approaches across key criteria relevant to a reliable, autom[...]  
-
-| Feature                   | `language-tool-python` (Rule-Based)                                      | Fine-Tuned T5 Model (Transformer)                          | Commercial API (e.g., Ginger)[...]  
-| ------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------- | -----------------------------[...]  
-| Accuracy                  | High (predictable, excels at common errors)                              | Very High (state-of-the-art potential)                     | Very High (proprietary models[...]  
-| Context Awareness         | Moderate (rules can check local context)                                 | High (inherent in Transformer architecture)                | Very High                    [...]  
-| Performance               | Moderate (JVM overhead, but can be cached)                               | Low (requires significant compute/GPU)                     | High (network latency is the [...]  
-| Customizability           | High (can add custom rules and dictionaries)                             | Very High (can be fine-tuned on any corpus)                | Low (usually limited to dicti[...]  
-| Licensing / Cost          | Free (LGPL) / no recurring cost                                          | Free (model weights) / high compute cost                   | Subscription-based           [...]  
-| Data Privacy              | Excellent (runs 100% locally)                                            | Excellent (runs 100% locally)                              | Poor (data sent to third part[...]  
-| Implementation Complexity | Low-to-Medium (requires Java dependency)                                 | High (requires MLOps expertise)                            | Low (simple API calls)       [...]  
-| Recommendation            | Recommended starting point for balance of accuracy, control, reliability | Future upgrade path if rule-based accuracy is insufficient | Not recommended for this auto[...]  
-
-The analysis indicates that `language-tool-python` represents the most prudent initial choice. It provides a high degree of accuracy and control without the reliability risks of an external API o[...]  
+| Feature                   | Rule-Based (LanguageTool)  | Fine-Tuned T5                 | Commercial API                   |
+| ------------------------- | -------------------------- | ----------------------------- | -------------------------------- |
+| Accuracy                  | High, predictable          | Very high potential           | Very high                        |
+| Context Awareness         | Moderate (local rules)     | High (transformer semantics)  | Very high                        |
+| Performance               | Moderate (JVM, cacheable)  | Low (heavy compute)           | High (network-limited)           |
+| Customizability           | High (rules, dictionaries) | Very high (fine-tuning)       | Low                              |
+| Licensing / Cost          | Free (LGPL), no recurring  | Free weights; high infra cost | Subscription                     |
+| Data Privacy              | Excellent (local)          | Excellent (local)             | Poor (3rd-party)                 |
+| Implementation Complexity | Low–Medium                 | High                          | Low                              |
+| Recommendation            | **Start here**             | Future upgrade if needed      | Not recommended for backend core |
 
 ---
 
 ## Section 3: The Implementation Roadmap
 
-This section translates the architectural design and technology selections into a concrete, phased, and actionable development plan. A multi-phase approach is recommended to manage complexity, mi[...]  
+Phased plan to manage complexity, mitigate risk, and ship value each stage.
 
 ### 3.1 Overview of Phased Approach
 
-The development is structured into three distinct phases:
+* **Phase 1:** Core engine + Markdown round-trip foundation.
+* **Phase 2:** Accuracy improvements (spelling, TTS) + regression testing.
+* **Phase 3:** EPUB support + performance and hardening.
 
-* **Phase 1: Core Engine and Markdown Support (The Foundation).**
-  The primary goal of this phase is to build a working end-to-end pipeline that can successfully process a Markdown file. This phase tackles the most significant technical challenge: modifying a [...]  
+### 3.2 Phase 1: Core Engine and Markdown Support
 
-* **Phase 2: Enhancing Correction Accuracy and TTS (The Refinement).**
-  With the core architecture in place, this phase focuses on improving the quality and scope of the text corrections by adding specialized filters for spelling and TTS normalization. It also intr[...]  
+*Status: ✓ Phase complete — Core pipeline operational; LT fallback JVM→API→graceful implemented.*
 
-* **Phase 3: EPUB Support and Performance Optimization (The Expansion).**
-  The final phase expands the application’s capabilities to a new file format and addresses production-level concerns like performance and scalability.
+Steps included environment setup, pipeline runner, Markdown parse/extract, grammar integration, Markdown write-back, and foundational tests.
 
-### 3.2 Phase 1: Core Engine and Markdown Support (The Foundation)
+### 3.3 Phase 2: Enhancing Accuracy and TTS
 
-<!-- ✓ PHASE COMPLETE: All tasks in Phase 1 have been completed. The core pipeline is operational with Markdown support. The LanguageTool integration includes intelligent fallback mechanisms (J[...]  
+*Status: ⚠ Mostly complete — TTS + regression done; pyspellchecker used; no custom LT rules (safe whitelist instead).*
 
-**Goal:** Create a minimum viable product (MVP) that can read a Markdown file, apply grammar and basic spelling corrections, and write the corrected file back to disk while preserving all origina[...]  
+* Context-aware spelling (JamSpell) planned upgrade.
+* TTSNormalizer built and placed after grammar.
+* Regression corpus and harness complete.
+* Custom rules exploration deferred.
 
-**Step-by-step tasks:**
+### 3.4 Phase 3: EPUB Support and Performance Optimization
 
-1. **Setup Project Environment**
+*Status: ✓ Phase complete — EPUB end-to-end working; benchmarks in place; structured JSON logging; error handling.*
 
-   * Initialize a Python project with a logical directory structure. Create separate directories for the pipeline (`pipeline/`), filters (`pipeline/filters/`), tests (`tests/`), and any sample do[...]  
-   * Set up a virtual environment and install the initial dependencies: `python-markdown` and `language-tool-python`. Ensure that a compatible Java runtime is installed on the development machine[...]  
+* EPUB parse/write implemented (currently `<p>` only).
+* Benchmarking via `cProfile`/`timeit`.
+* Optimization: thread-safe singleton LT instance; further cache knobs available.
+* Logging + graceful degradation across pipeline.
 
-2. **Implement the Pipeline Runner**
+---
 
-   * Create a central orchestrator class or script (`pipeline_runner.py`). This module will be responsible for initializing the filters in the correct order and executing the pipeline. It will de[...]  
+## Section 4: Recommendations for Ensuring Long-Term Reliability
 
-3. **Develop the Markdown InputParser and TextExtractor**
+### 4.1 Comprehensive Automated Testing Strategy
 
-   * Create a filter module (`markdown_parser.py`).
-   * Use `python-markdown` to read a `.md` file.
-   * Begin development of a custom `Treeprocessor` extension, as described in the `python-markdown` documentation. The initial version of this extension will traverse the parsed `ElementTree` and[...]  
+*Status: ✓ Implemented — unit, integration, regression (“golden corpus”).*
 
-4. **Integrate the Core Correction Engine**
+Unit tests per filter, integration tests for orchestration, regression tests run in CI to catch any output drift.
 
-   * Create the `GrammarCorrectionFilter` (`grammar_filter.py`).
-   * This filter will receive the intermediate data structure. It will instantiate the `language_tool_python.LanguageTool` class.
-   * It will then iterate through the list of text blocks, passing the `content` of each block to the `tool.correct()` method. The returned corrected text will be written back into the `content` [...]  
+### 4.2 Robust Error Handling and Monitoring
 
-5. **Develop the Markdown OutputGenerator**
+*Status: ✓ Implemented — graceful degradation, structured logging; dashboards not yet built.*
 
-   * Extend the `Treeprocessor` in `markdown_parser.py` to handle output generation.
-   * This component will take the modified intermediate data structure and write the corrected text back into the corresponding nodes of the original `ElementTree`.
-   * A method must then be devised to render this modified `ElementTree` back into a valid Markdown string. This may require writing a custom tree-to-text renderer, as `python-markdown` is primar[...]  
+* Configurable fail-open vs fail-fast per filter.
+* Structured logs: file, filter, actions, duration, warnings/errors.
+* Future: lightweight dashboards over existing logs.
 
-6. **Establish Foundational Testing**
+### 4.3 Framework for Continuous Improvement
 
-   * Create an initial test suite using a framework like `pytest`.
-   * Include a simple sample Markdown file containing various elements (headings, lists, bold text) and at least one obvious grammatical error.
-   * Write a test case that runs the entire pipeline on this file and asserts that the output file contains the corrected text and has its original formatting intact.
+*Status: ⚠ Partial — feedback tool to add failures to corpus exists; formal dependency reviews not yet scheduled.*
 
-### 3.3 Phase 2: Enhancing Correction Accuracy and TTS (The Refinement)
+* Capture problematic docs → add to regression corpus.
+* Periodic dependency/model reviews (LT, transformers, spelling libs).
+* Plan for domain tuning: custom dictionaries/rules; optional fine-tuned T5.
 
-<!-- ⚠ PHASE MOSTLY COMPLETE: TTS normalization and regression testing are done. However, JamSpell was not used (pyspellchecker was chosen instead), and custom LanguageTool rules were not imple[...]  
+---
 
-**Goal:** Significantly improve the quality of the output by adding specialized correction layers and preparing the text for TTS synthesis.
+## Works Cited
 
-**Step-by-step tasks:**
-
-1. **Integrate Context-Aware Spell Checking**
-
-   <!-- ⚠ PARTIALLY DONE: Spelling correction is implemented in spelling_filter.py, but uses pyspellchecker instead of JamSpell. JamSpell integration remains a potential future enhancement for [...]  
-
-   * Install JamSpell and its dependencies (e.g. `swig`). Download a pre-trained English language model for JamSpell.
-   * Implement the `SpellingCorrectionFilter` (`spelling_filter.py`).
-   * Insert this new filter into the pipeline runner before the `GrammarCorrectionFilter`. This ensures that simple spelling mistakes are fixed first, which can improve the accuracy of the subseq[...]  
-
-2. **Develop the TTSNormalizer Filter**n
+1. Pipeline (software) — Wikipedia, accessed October 26, 2025
+2. Pipes and Filters pattern — Azure Architecture Center | Microsoft Learn, accessed October 26, 2025
+3. Pipe and Filter Architecture — System Design — GeeksforGeeks, accessed October 26, 2025
+4. Language Processing Pipelines — spaCy Docs, accessed October 26, 2025
+5. How to Build Text Processing Pipelines with SpaCy — Edlitera, accessed October 26, 2025
+6. 4 Ways to Correct Grammar with Python — ListenData, accessed October 26, 2025
+7. Grammar Checker in Python using Language-check — GeeksforGeeks, accessed October 26, 2025
+8. languagetool-org/languagetool — GitHub, accessed October 26, 2025
+9. jxmorris12/language_tool_python — GitHub, accessed October 26, 2025
+10. language-tool-python — PyPI, accessed October 26, 2025
+11. Benchmark against LanguageTool — Issue #6, nlprule — GitHub, accessed October 26, 2025
+12. LLMs as Evaluators for GEC — arXiv, accessed October 26, 2025
+13. Grammar Correction using T5 on FCE — DebuggerCafe, accessed October 26, 2025
+14. Transformers — Hugging Face, accessed October 26, 2025
+15. vennify/t5-base-grammar-correction — Hugging Face, accessed October 26, 2025
+16. hassaanik/grammar-correction-model — Hugging Face, accessed October 26, 2025
+17. FlanT5 for Grammar Correction — Medium, accessed October 26, 2025
+18. Grammarly — accessed October 26, 2025
+19. Grammar Checker API — AIContentfy, accessed October 26, 2025
+20. Trinka’s Grammar Checker API — accessed October 26, 2025
+21. Best Grammar and Spell Check APIs — Rapid API, accessed October 26, 2025
+22. The Best Spell Checker 2025 (Scientific Texts) — Mimir Mentor, accessed October 26, 2025
+23. mdformat — PyPI, accessed October 26, 2025
+24. mdformat 1.0.0 documentation — accessed October 26, 2025
+25. hukkin/mdformat — GitHub, accessed October 26, 2025
+26. Python-Markdown 3.9 docs — accessed October 26, 2025
+27. Extension API — Python-Markdown 3.9 docs — accessed October 26, 2025
+28. Getting Text from EPUB Files in Python — Medium, accessed October 26, 2025
+29. Extracting text from EPUB files in Python — KB LAB, accessed October 26, 2025
+30. EbookLib documentation — accessed October 26, 2025
+31. EbookLib Tutorial — accessed October 26, 2025
+32. pyspellchecker — IronPDF overview, accessed October 26, 2025
+33. Spelling checker in Python — GeeksforGeeks, accessed October 26, 2025
+34. bakwc/JamSpell — GitHub, accessed October 26, 2025
+35. Neural Models of Text Normalization for Speech Applications — MIT Press, accessed October 26, 2025
+36. Text Normalization for Speech Systems for All Languages — accessed October 26, 2025
+37. RNN Approaches to Text Normalization: A Challenge — arXiv, accessed October 26, 2025
+38. Text-to-Speech Engines Text Normalization — Microsoft Learn, accessed October 26, 2025
+39. arXiv:2202.00153v1 [cs.LG] — accessed October 26, 2025
+40. Python tools to profile and benchmark your code — Medium, accessed October 26, 2025
