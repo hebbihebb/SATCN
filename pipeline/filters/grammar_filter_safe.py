@@ -1,11 +1,39 @@
-import language_tool_python
 import logging
+import time
+
+from pipeline.utils.language_tool_utils import get_language_tool
 
 class GrammarCorrectionFilterSafe:
     def __init__(self):
-        # Initialize LanguageTool for American English
-        self.tool = language_tool_python.LanguageTool('en-US')
         self.logger = logging.getLogger(__name__)
+        self.tool, self.backend = get_language_tool(logger=self.logger)
+        if not self.tool:
+            self.logger.warning(
+                "LanguageTool unavailable; grammar corrections disabled.",
+                extra={"event": "grammar_filter_disabled"},
+            )
+
+    def _check_with_retry(self, text):
+        max_attempts = 3
+        delay = 0.5
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return self.tool.check(text)
+            except Exception as exc:
+                self.logger.warning(
+                    "LanguageTool check failed; retrying.",
+                    extra={
+                        "event": "language_tool_check_retry",
+                        "attempt": attempt,
+                        "max_attempts": max_attempts,
+                        "backend": getattr(self, "backend", "unknown"),
+                    },
+                )
+                if attempt == max_attempts:
+                    raise exc
+                time.sleep(delay)
+                delay *= 2
 
     def _get_safe_category(self, match):
         """
@@ -41,10 +69,24 @@ class GrammarCorrectionFilterSafe:
             "casing_fixed": 0, "simple_agreement_fixed": 0
         }
 
+        if not self.tool:
+            self.logger.debug(
+                "Skipping grammar corrections; LanguageTool disabled.",
+                extra={"event": "language_tool_skipped"},
+            )
+            return text, stats
+
         try:
-            matches = self.tool.check(text)
+            matches = self._check_with_retry(text)
         except Exception as e:
-            self.logger.error(f"LanguageTool check failed: {e}", exc_info=True)
+            self.logger.error(
+                "LanguageTool check failed after retries.",
+                exc_info=True,
+                extra={
+                    "event": "language_tool_check_failed",
+                    "backend": getattr(self, "backend", "unknown"),
+                },
+            )
             return text, {k: 0 for k in stats}
 
         safe_matches = []

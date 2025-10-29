@@ -1,8 +1,8 @@
 import pytest
 import os
-import filecmp
 import difflib
 from pipeline.pipeline_runner import PipelineRunner
+from pipeline.utils.language_tool_utils import get_language_tool
 
 REGRESSION_CORPUS_DIR = 'tests/regression_corpus'
 
@@ -19,6 +19,10 @@ def test_regression(input_filepath):
     """
     Runs the pipeline on an input file and compares the output to the golden file.
     """
+    tool, _ = get_language_tool()
+    if tool is None:
+        pytest.skip("LanguageTool backend unavailable; skipping golden diff checks")
+
     golden_filepath = input_filepath.replace('input_', 'golden_')
 
     # Run the pipeline
