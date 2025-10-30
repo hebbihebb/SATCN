@@ -1,0 +1,18 @@
+# Requirements for T5 Grammar Filter Integration
+# Add these to your existing requirements.txt
+
+# Core dependencies (existing)
+Markdown
+language-tool-python
+pytest
+num2words
+ebooklib
+beautifulsoup4
+pyspellchecker
+
+# New dependencies for T5 integration
+transformers>=4.30.0      # Hugging Face Transformers library
+torch>=2.0.0              # PyTorch for model inference
+accelerate>=0.20.0        # For efficient model loading and device management
+sentencepiece>=0.1.99     # Tokenizer backend for T5 models
+protobuf>=3.20.0          # Required by transformers
