@@ -246,6 +246,51 @@ filter = T5GrammarFilter(model_name="vennify/t5-base-grammar-correction")
 
 ## Troubleshooting
 
+### Issue: "CUDA not available, using CPU" (but you have a GPU)
+
+**Symptoms**:
+- Log shows "CUDA not available, using CPU (this will be slow)"
+- You have an NVIDIA GPU (e.g., GTX 2070)
+- Very slow inference (5-30 seconds per sentence)
+
+**Cause**: You likely installed the **CPU-only version** of PyTorch
+
+**Solution**:
+```bash
+# 1. Check if CUDA is detected
+python check_cuda.py
+
+# 2. If CUDA is not detected, run the fix script
+./fix_cuda.sh
+
+# This will:
+# - Uninstall CPU-only PyTorch
+# - Install GPU-enabled PyTorch
+# - Verify CUDA works
+```
+
+**Manual fix**:
+```bash
+# Check your CUDA version
+nvidia-smi
+
+# Uninstall CPU-only PyTorch
+pip uninstall torch torchvision torchaudio
+
+# Install with CUDA 11.8 support
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# OR with CUDA 12.1 support
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Verify
+python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
+```
+
+**Performance difference**:
+- CPU: 5-30 seconds per sentence
+- GPU (GTX 2070): 0.5-2 seconds per sentence (**10-50x faster!**)
+
 ### Issue: "CUDA out of memory"
 
 **Solution**: Reduce max_length or use CPU
