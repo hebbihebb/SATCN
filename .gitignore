@@ -10,6 +10,9 @@ __pycache__/
 venv/
 env/
 
+# Local virtual environments
+.venv310/
+
 # IDE
 .idea/
 .vscode/
