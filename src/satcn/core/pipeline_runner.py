@@ -2,18 +2,21 @@ import argparse
 import os
 import logging
 import time
-from .filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
-from .filters.epub_parser import EpubParserFilter, EpubOutputGenerator
-from .filters.grammar_filter_safe import GrammarCorrectionFilterSafe
-from .filters.spelling_filter import SpellingCorrectionFilter
-from .filters.tts_normalizer import TTSNormalizer
-from .filters.t5_correction_filter import T5CorrectionFilter
-from .filters import GRMR_V3_AVAILABLE
-from .utils.logging_setup import setup_logging
+from satcn.core.filters.markdown_parser import (
+    MarkdownParserFilter,
+    MarkdownOutputGenerator,
+)
+from satcn.core.filters.epub_parser import EpubParserFilter, EpubOutputGenerator
+from satcn.core.filters.grammar_filter_safe import GrammarCorrectionFilterSafe
+from satcn.core.filters.spelling_filter import SpellingCorrectionFilter
+from satcn.core.filters.tts_normalizer import TTSNormalizer
+from satcn.core.filters.t5_correction_filter import T5CorrectionFilter
+from satcn.core.filters import GRMR_V3_AVAILABLE
+from satcn.core.utils.logging_setup import setup_logging
 
 # Conditional import for GRMR-V3
 if GRMR_V3_AVAILABLE:
-    from .filters.grmr_v3_filter import GRMRV3GrammarFilter
+    from satcn.core.filters.grmr_v3_filter import GRMRV3GrammarFilter
 
 class PipelineRunner:
     def __init__(self, input_filepath, fail_fast=False, use_t5=False, t5_mode="replace", 

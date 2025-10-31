@@ -1,0 +1,150 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "satcn"
+version = "0.1.0"
+description = "Spelling and Text Correction Normalizer - Local-only text correction for TTS preprocessing"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "SATCN Contributors"}
+]
+keywords = ["text-correction", "tts", "grammar", "spelling", "nlp", "local-ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Linguistic",
+]
+
+dependencies = [
+    "Markdown>=3.0",
+    "language-tool-python>=2.0",
+    "num2words>=0.5",
+    "ebooklib>=0.17",
+    "beautifulsoup4>=4.0",
+    "pyspellchecker>=0.7",
+]
+
+[project.optional-dependencies]
+grmr = [
+    "llama-cpp-python>=0.2.90",
+    "numpy>=1.24.0",
+    "diskcache>=5.6.0",
+]
+
+t5 = [
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+    "accelerate>=0.20.0",
+    "sentencepiece>=0.1.99",
+    "protobuf>=3.20.0",
+]
+
+gui = [
+    # tkinter is built-in but document requirement
+]
+
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+    "black>=23.0",
+    "isort>=5.12",
+    "pre-commit>=3.0",
+]
+
+all = [
+    "satcn[grmr,t5,gui,dev]",
+]
+
+[project.scripts]
+satcn = "satcn.cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/hebbihebb/SATCN"
+Repository = "https://github.com/hebbihebb/SATCN"
+Documentation = "https://github.com/hebbihebb/SATCN/tree/main/docs"
+Issues = "https://github.com/hebbihebb/SATCN/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+satcn = ["py.typed"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.venv-gpu
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+src_paths = ["src", "tests"]
+skip_glob = ["*.venv*", "build", "dist"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # function call in argument defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__.py
+"tests/**/*" = ["B018"]   # useless expression in tests
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
