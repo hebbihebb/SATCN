@@ -16,7 +16,10 @@ import customtkinter as ctk
 
 from satcn.core.pipeline_runner import PipelineRunner
 from satcn.gui.components.config import PipelineConfig
+from satcn.gui.components.correction_stats import CorrectionStats
 from satcn.gui.components.tooltip import add_tooltip
+from satcn.gui.diff_viewer import DiffViewerWindow
+from satcn.gui.success_dialog import SuccessDialog
 
 # Constants
 SUPPORTED_FORMATS = {".txt", ".md", ".epub"}
@@ -443,6 +446,10 @@ class SATCNPipelineGUI:
 
     def _process_file(self):
         """Run pipeline in background thread."""
+        import time
+
+        start_time = time.time()
+
         try:
             # Create PipelineRunner
             runner = PipelineRunner(
@@ -455,13 +462,34 @@ class SATCNPipelineGUI:
             )
 
             # Run pipeline (this will take time)
-            # TODO: Add callback mechanism to get progress updates
             output_path = runner.run()
+            end_time = time.time()
 
             if self.cancel_flag:
                 self.output_queue.put(("status", "Cancelled by user"))
             else:
-                self.output_queue.put(("success", output_path))
+                # Gather statistics
+                processing_time = end_time - start_time
+
+                # Build filter list from config
+                filters_applied = []
+                if self.config.grammar_engine != "none":
+                    if self.config.use_grmr:
+                        filters_applied.append("GRMRV3GrammarFilter")
+                    elif self.config.use_t5:
+                        filters_applied.append("T5CorrectionFilter")
+                    else:
+                        filters_applied.append("GrammarFilter")
+
+                # Create stats dict
+                stats = CorrectionStats.from_pipeline_output(
+                    output_path=Path(output_path),
+                    total_changes=0,  # TODO: Get from runner if available
+                    processing_time=processing_time,
+                    filters_applied=filters_applied,
+                )
+
+                self.output_queue.put(("success", (output_path, stats)))
 
         except Exception as e:
             self.output_queue.put(("error", str(e)))
@@ -477,11 +505,14 @@ class SATCNPipelineGUI:
                 elif msg_type == "status":
                     self.status_var.set(msg_data)
                 elif msg_type == "success":
+                    output_path, stats = msg_data  # Unpack tuple
                     self._log("\n✅ Pipeline completed successfully!")
-                    self._log(f"Output: {msg_data}")
+                    self._log(f"Output: {output_path}")
                     self.status_var.set("Completed")
                     self._set_processing_state(False)
-                    messagebox.showinfo("Success", f"Processing complete!\n\nOutput: {msg_data}")
+
+                    # Show custom success dialog with diff button
+                    self._show_success_dialog(output_path, stats)
                     return  # Stop checking
                 elif msg_type == "error":
                     self._log(f"\n❌ Error: {msg_data}")
@@ -536,6 +567,54 @@ class SATCNPipelineGUI:
             self.config.save(PipelineConfig.get_config_path())
         except Exception as e:
             print(f"Warning: Could not save config: {e}")
+
+    def _show_success_dialog(self, output_path: str, stats: dict):
+        """
+        Show custom success dialog with correction statistics.
+
+        Args:
+            output_path: Path to corrected output file
+            stats: Statistics dictionary from CorrectionStats
+        """
+        SuccessDialog(
+            parent=self.root,
+            output_path=Path(output_path),
+            stats=stats,
+            on_view_diff_callback=lambda: self._open_diff_viewer(
+                self.config.input_file, Path(output_path)
+            ),
+            on_open_output_callback=lambda: self._open_output_file(output_path),
+        )
+
+    def _open_diff_viewer(self, original_path: Path, corrected_path: Path):
+        """
+        Open diff viewer window.
+
+        Args:
+            original_path: Path to original file
+            corrected_path: Path to corrected file
+        """
+        DiffViewerWindow(self.root, original_path, corrected_path)
+
+    def _open_output_file(self, output_path: str):
+        """
+        Open output file in system editor.
+
+        Args:
+            output_path: Path to output file
+        """
+        import os
+        import platform
+
+        try:
+            if platform.system() == "Windows":
+                os.startfile(output_path)
+            elif platform.system() == "Darwin":  # macOS
+                os.system(f'open "{output_path}"')
+            else:  # Linux
+                os.system(f'xdg-open "{output_path}"')
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not open file:\n{e}")
 
     def _on_closing(self):
         """Handle window close event."""
