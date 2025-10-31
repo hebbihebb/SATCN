@@ -1,5 +1,5 @@
 import pytest
-from pipeline.filters.grammar_filter import GrammarCorrectionFilter
+from satcn.core.filters.grammar_filter import GrammarCorrectionFilter
 
 def test_grammar_filter_is_pass_through():
     """

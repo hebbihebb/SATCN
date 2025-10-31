@@ -3,8 +3,8 @@ import logging
 import language_tool_python
 import pytest
 
-from pipeline.utils import language_tool_utils as lt_utils
-from pipeline.filters.grammar_filter_safe import GrammarCorrectionFilterSafe
+from satcn.core.utils import language_tool_utils as lt_utils
+from satcn.core.filters.grammar_filter_safe import GrammarCorrectionFilterSafe
 
 @pytest.fixture
 def grammar_filter():

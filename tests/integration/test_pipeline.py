@@ -1,6 +1,6 @@
 import pytest
 import os
-from pipeline.pipeline_runner import PipelineRunner
+from satcn.core.pipeline_runner import PipelineRunner
 
 @pytest.fixture
 def markdown_sample():

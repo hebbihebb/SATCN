@@ -12,7 +12,7 @@ try:
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
 
-from pipeline.filters.t5_grammar_filter import T5GrammarFilter
+from satcn.core.filters.t5_grammar_filter import T5GrammarFilter
 
 
 @pytest.fixture

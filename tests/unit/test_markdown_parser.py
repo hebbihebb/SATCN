@@ -1,6 +1,6 @@
 import pytest
 import os
-from pipeline.filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
+from satcn.core.filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
 
 @pytest.fixture
 def markdown_file(tmp_path):

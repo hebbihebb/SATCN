@@ -1,5 +1,5 @@
 import pytest
-from pipeline.filters.spelling_filter import SpellingCorrectionFilter
+from satcn.core.filters.spelling_filter import SpellingCorrectionFilter
 
 def test_spelling_correction():
     """

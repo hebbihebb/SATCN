@@ -1,8 +1,8 @@
 import pytest
 import os
 import difflib
-from pipeline.pipeline_runner import PipelineRunner
-from pipeline.utils.language_tool_utils import get_language_tool
+from satcn.core.pipeline_runner import PipelineRunner
+from satcn.core.utils.language_tool_utils import get_language_tool
 
 REGRESSION_CORPUS_DIR = 'tests/regression_corpus'
 

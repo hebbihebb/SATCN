@@ -1,5 +1,5 @@
 import pytest
-from pipeline.filters.tts_normalizer import TTSNormalizer
+from satcn.core.filters.tts_normalizer import TTSNormalizer
 
 @pytest.fixture
 def normalizer():

@@ -18,7 +18,7 @@ from unittest.mock import Mock, patch, MagicMock
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from pipeline.filters.grmr_v3_filter import GRMRV3GrammarFilter, LLAMA_CPP_AVAILABLE
+from satcn.core.filters.grmr_v3_filter import GRMRV3GrammarFilter, LLAMA_CPP_AVAILABLE
 
 
 # Fixtures
@@ -68,7 +68,7 @@ def test_llama_cpp_available():
 @pytest.mark.skipif(not LLAMA_CPP_AVAILABLE, reason="llama-cpp-python not installed")
 def test_import_with_llama_cpp():
     """Test that GRMRV3GrammarFilter can be imported when llama-cpp is available."""
-    from pipeline.filters.grmr_v3_filter import GRMRV3GrammarFilter
+    from satcn.core.filters.grmr_v3_filter import GRMRV3GrammarFilter
     assert GRMRV3GrammarFilter is not None
 
 
