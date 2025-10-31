@@ -17,9 +17,34 @@ env/
 .idea/
 .vscode/
 
+# VS Code workspace
+.vscode/
+
 # Test output
 corpus/*_corrected.md
+corpus/*_corrected.epub
 tests/regression_corpus/*_corrected.md
+tools/*_corrected.md
+tools/*_corrected.epub
+tools/test_*.md
 
 # Models
 models/
+
+# Pip cache
+pip-wheel-metadata/
+*.egg-info/
+
+# Log files
+*.log
+gui_logs/
+
+# Huggingface/transformers/torch cache
+~/.cache/
+~/.torch/
+~/.huggingface/
+
+# Large model files
+*.gguf
+*.bin
+*.pt

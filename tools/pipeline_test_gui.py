@@ -24,6 +24,7 @@ from tkinter import filedialog, messagebox, ttk
 SUPPORTED_EXTENSIONS = {".txt", ".md", ".epub"}
 WORDS_PER_PAGE = 300
 WORDS_PER_SECOND = 140  # crude estimate used for processing time heuristics
+WORDS_PER_SECOND_T5 = 15  # T5 model inference is much slower (~10x slower than regular filters)
 
 
 @dataclass
@@ -74,8 +75,12 @@ def collect_file_stats(path: Path) -> FileStats:
 
     extra: Dict[str, str] = {}
     if word_count:
+        # NOTE: This shows base estimate only. Actual time depends on filters selected.
         seconds = max(1, int(word_count / WORDS_PER_SECOND))
-        extra["Estimated processing time"] = f"~{seconds} seconds"
+        extra["Estimated processing time (base)"] = f"~{seconds} seconds"
+        # Add T5 estimate for reference
+        seconds_t5 = max(1, int(word_count / WORDS_PER_SECOND_T5)) + 12
+        extra["Estimated with T5"] = f"~{seconds_t5} seconds"
     extra["Line count"] = str(text.count("\n") + 1)
 
     return FileStats(
@@ -261,7 +266,12 @@ class PipelineTestGUI:
 
         estimated_seconds: Optional[int] = None
         if self.stats and self.stats.word_count:
-            estimated_seconds = max(1, int(self.stats.word_count / WORDS_PER_SECOND))
+            # Use slower estimate if T5 correction is enabled
+            wps = WORDS_PER_SECOND_T5 if self.use_t5_var.get() else WORDS_PER_SECOND
+            estimated_seconds = max(1, int(self.stats.word_count / wps))
+            # Add model loading overhead for T5 (approximately 10-15 seconds)
+            if self.use_t5_var.get():
+                estimated_seconds += 12
             self._append_log(f"Estimated runtime: ~{estimated_seconds} seconds\n")
 
         self._current_run_start_perf = time.perf_counter()

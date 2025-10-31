@@ -49,14 +49,22 @@ class T5Corrector:
         model: Hugging Face model instance
     """
 
-    # Default model: FLAN-T5 Large fine-tuned for grammar synthesis
+    # Default model: FLAN-T5 large for grammar synthesis
+    # Grade: C/C+ - changes names but good grammar fixes
     DEFAULT_MODEL = "pszemraj/flan-t5-large-grammar-synthesis"
-
-    # Alternative models that can be used
+    
+    # Alternative models (tested and not recommended)
     ALTERNATIVE_MODELS = {
-        "flan-t5-base": "pszemraj/flan-t5-base-grammar-synthesis",
-        "t5-base-grammar": "vennify/t5-base-grammar-correction",
-        "t5-large-spell": "ai-forever/T5-large-spell",
+        "ai-forever-spell": "ai-forever/T5-large-spell",  # Grade D+: introduces more errors than fixes
+        "small-typo": "willwade/t5-small-spoken-typo",  # Untested - truncates too aggressively
+        "general-correction": "rihebriri/t5-text-correction",  # Untested
+    }
+    
+    # Model-specific prefixes (some models require task prefixes)
+    MODEL_PREFIXES = {
+        "ai-forever/T5-large-spell": "grammar: ",  # Required but model still performs poorly
+        "rihebriri/t5-text-correction": "",  # May need testing
+        # Most other models don't need prefixes
     }
 
     def __init__(
@@ -64,7 +72,7 @@ class T5Corrector:
         model_name: Optional[str] = None,
         device: Optional[str] = None,
         max_length: int = 512,
-        num_beams: int = 4,
+        num_beams: int = 2,  # Reduced from 4 for faster, less creative corrections
         use_half_precision: bool = True,
         logger: Optional[logging.Logger] = None
     ):
@@ -76,8 +84,9 @@ class T5Corrector:
                        DEFAULT_MODEL (flan-t5-large-grammar-synthesis)
             device: Computing device ('cuda', 'cpu', 'mps', or None for auto)
             max_length: Maximum sequence length for input/output (default: 512)
-            num_beams: Number of beams for beam search (default: 4, higher =
-                      better quality but slower)
+            num_beams: Number of beams for beam search (default: 2, higher =
+                      better quality but slower. Reduced from 4 for faster,
+                      less creative corrections)
             use_half_precision: Use float16 on GPU for faster inference with
                               minimal quality loss (default: True)
             logger: Optional logger instance. If None, creates a new logger.
@@ -91,6 +100,11 @@ class T5Corrector:
         self.max_length = max_length
         self.num_beams = num_beams
         self.use_half_precision = use_half_precision
+        
+        # Get model-specific prefix if required
+        self.prefix = self.MODEL_PREFIXES.get(self.model_name, "")
+        if self.prefix:
+            self.logger.info(f"Model requires prefix: '{self.prefix}'")
 
         # Auto-detect device if not specified
         self.device = self._detect_device(device)
@@ -161,23 +175,19 @@ class T5Corrector:
                 dtype = torch.float32
                 self.logger.info("Using full precision (float32)")
 
-            # Load model
+            # Load model with modern API (dtype not torch_dtype, device_map for auto placement)
             load_kwargs = {
-                "torch_dtype": dtype,
+                "dtype": dtype,  # Modern API: dtype instead of torch_dtype
             }
 
-            # Use device_map for CUDA
-            if self.device == "cuda":
-                load_kwargs["device_map"] = "auto"
-
+            # Load model directly - device_map="auto" is too slow for single GPU
             self.model = AutoModelForSeq2SeqLM.from_pretrained(
                 self.model_name,
                 **load_kwargs
             )
 
-            # Move model to device if not using device_map
-            if self.device != "cuda":
-                self.model = self.model.to(self.device)
+            # Move model to device
+            self.model = self.model.to(self.device)
 
             # Set to evaluation mode
             self.model.eval()
@@ -221,14 +231,26 @@ class T5Corrector:
             return result
 
         try:
+            # Add model-specific prefix if required
+            input_text = self.prefix + text if self.prefix else text
+            
             # Tokenize
             inputs = self.tokenizer(
-                text,
+                input_text,
                 return_tensors="pt",
                 max_length=self.max_length,
                 truncation=True,
                 padding=False
             )
+            
+            # Check for truncation
+            input_length = inputs['input_ids'].shape[1]
+            if input_length >= self.max_length:
+                self.logger.warning(
+                    f"Text was truncated to {self.max_length} tokens. "
+                    f"Original text: {len(text)} chars, {len(text.split())} words. "
+                    f"Consider using shorter text blocks or increasing max_length."
+                )
 
             # Move to device
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
@@ -240,7 +262,10 @@ class T5Corrector:
                     max_new_tokens=self.max_length,
                     num_beams=self.num_beams,
                     early_stopping=True,
-                    # Future: Add length_penalty, temperature for fine-tuning
+                    do_sample=False,  # Deterministic output (no sampling randomness)
+                    length_penalty=1.0,  # Neutral length penalty (maintain original length)
+                    repetition_penalty=1.2,  # Penalize repetitions to prevent duplications
+                    no_repeat_ngram_size=3,  # Prevent 3-gram repetitions
                 )
 
             # Decode
@@ -335,6 +360,9 @@ class T5Corrector:
 
         corrections_made = 0
         blocks_processed = 0
+        total_blocks = len(data['text_blocks'])
+        
+        self.logger.info(f"Processing {total_blocks} text blocks with T5 model...")
 
         for i, block in enumerate(data['text_blocks']):
             original_content = block.get('content', '')
@@ -342,6 +370,13 @@ class T5Corrector:
             # Skip empty blocks
             if not original_content or not original_content.strip():
                 continue
+
+            # Log progress for each block
+            word_count = len(original_content.split())
+            self.logger.info(
+                f"Processing block {i+1}/{total_blocks} "
+                f"({word_count} words, {len(original_content)} chars)..."
+            )
 
             # Correct the text
             corrected_content = self.correct(original_content)
@@ -351,13 +386,28 @@ class T5Corrector:
                 block['content'] = corrected_content
                 corrections_made += 1
 
+                # Calculate change metrics
+                orig_words = len(original_content.split())
+                corr_words = len(corrected_content.split())
+                word_diff = corr_words - orig_words
+                
+                self.logger.info(
+                    f"Block {i+1}: Corrected "
+                    f"(word count: {orig_words} -> {corr_words}, diff: {word_diff:+d})"
+                )
+
                 # Log changes (truncated for readability)
                 if self.logger.isEnabledFor(logging.DEBUG):
-                    orig_preview = original_content[:60].replace('\n', ' ')
-                    corr_preview = corrected_content[:60].replace('\n', ' ')
+                    orig_preview = original_content[:80].replace('\n', ' ')
+                    corr_preview = corrected_content[:80].replace('\n', ' ')
                     self.logger.debug(
-                        f"Block {i}: '{orig_preview}...' -> '{corr_preview}...'"
+                        f"Block {i+1} BEFORE: '{orig_preview}...'"
                     )
+                    self.logger.debug(
+                        f"Block {i+1} AFTER:  '{corr_preview}...'"
+                    )
+            else:
+                self.logger.info(f"Block {i+1}: No changes needed")
 
             blocks_processed += 1
 
