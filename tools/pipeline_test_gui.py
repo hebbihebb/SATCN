@@ -8,10 +8,11 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import ebooklib  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
@@ -106,8 +107,14 @@ class PipelineTestGUI:
         self.process_thread: Optional[threading.Thread] = None
         self.current_process: Optional[subprocess.Popen[str]] = None
         self.cancel_event = threading.Event()
+        self.log_buffer: List[str] = []
+        self.run_records: List[Dict[str, object]] = []
+        self._current_run_start_perf: Optional[float] = None
+        self._current_run_start_time: Optional[datetime] = None
+        self._current_estimated_seconds: Optional[int] = None
 
         self._poll_output_queue()
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
     # ------------------------------------------------------------------
     # UI construction
@@ -252,7 +259,20 @@ class PipelineTestGUI:
         self.status_var.set("Running pipeline...")
         self._append_log("Starting pipeline run...\n")
 
-        self.process_thread = threading.Thread(target=self._execute_pipeline, args=(path,), daemon=True)
+        estimated_seconds: Optional[int] = None
+        if self.stats and self.stats.word_count:
+            estimated_seconds = max(1, int(self.stats.word_count / WORDS_PER_SECOND))
+            self._append_log(f"Estimated runtime: ~{estimated_seconds} seconds\n")
+
+        self._current_run_start_perf = time.perf_counter()
+        self._current_run_start_time = datetime.now()
+        self._current_estimated_seconds = estimated_seconds
+
+        self.process_thread = threading.Thread(
+            target=self._execute_pipeline,
+            args=(path, self._current_run_start_perf, self._current_run_start_time, estimated_seconds),
+            daemon=True,
+        )
         self.process_thread.start()
 
     def cancel_pipeline(self) -> None:
@@ -268,10 +288,17 @@ class PipelineTestGUI:
     # ------------------------------------------------------------------
     # Pipeline execution
     # ------------------------------------------------------------------
-    def _execute_pipeline(self, original_path: Path) -> None:
+    def _execute_pipeline(
+        self,
+        original_path: Path,
+        start_perf: Optional[float],
+        start_time: Optional[datetime],
+        estimated_seconds: Optional[int],
+    ) -> None:
         temp_dir: Optional[Path] = None
         input_path = original_path
         txt_mode = original_path.suffix.lower() == ".txt"
+        status_label = "failed"
         try:
             if txt_mode:
                 temp_dir = Path(tempfile.mkdtemp(prefix="satcn_txt_"))
@@ -317,6 +344,7 @@ class PipelineTestGUI:
             self.current_process = None
 
         output_path: Optional[Path] = None
+        status_message: Optional[str] = None
         try:
             if rc == 0 and not self.cancel_event.is_set():
                 if txt_mode:
@@ -332,16 +360,42 @@ class PipelineTestGUI:
                         output_path = expected
 
                 if output_path and output_path.exists():
-                    self.output_queue.put(("status", f"Processing complete. Output saved to {output_path}.\n"))
+                    status_label = "success"
+                    status_message = f"Processing complete. Output saved to {output_path}.\n"
+                    self.output_queue.put(("status", status_message))
                 else:
-                    self.output_queue.put(("status", "Processing finished but the output file was not found.\n"))
+                    status_label = "missing_output"
+                    status_message = "Processing finished but the output file was not found.\n"
+                    self.output_queue.put(("status", status_message))
             elif self.cancel_event.is_set():
-                self.output_queue.put(("status", "Pipeline run cancelled.\n"))
+                status_label = "cancelled"
+                status_message = "Pipeline run cancelled.\n"
+                self.output_queue.put(("status", status_message))
             else:
-                self.output_queue.put(("error", "Pipeline run failed. See logs for details.\n"))
+                status_label = "failed"
+                status_message = "Pipeline run failed. See logs for details.\n"
+                self.output_queue.put(("error", status_message))
         finally:
             if temp_dir and temp_dir.exists():
                 shutil.rmtree(temp_dir, ignore_errors=True)
+
+        end_perf = time.perf_counter() if start_perf is not None else None
+        actual_seconds: Optional[float] = None
+        if start_perf is not None and end_perf is not None:
+            actual_seconds = end_perf - start_perf
+            estimate_text = f" (estimated ~{estimated_seconds} seconds)" if estimated_seconds else ""
+            self.output_queue.put(("log", f"Run duration: {actual_seconds:.1f} seconds{estimate_text}\n"))
+
+        if start_time is not None:
+            record = {
+                "started_at": start_time,
+                "estimated_seconds": estimated_seconds,
+                "actual_seconds": actual_seconds,
+                "status": status_label,
+                "output_path": output_path,
+                "status_message": status_message,
+            }
+            self.run_records.append(record)
 
         self.output_queue.put(("done", ""))
 
@@ -375,6 +429,55 @@ class PipelineTestGUI:
         self.log_text.insert(tk.END, message)
         self.log_text.see(tk.END)
         self.log_text.config(state="disabled")
+        self.log_buffer.append(message)
+
+    def _on_close(self) -> None:
+        try:
+            self._dump_log_file()
+        finally:
+            self.root.destroy()
+
+    def _dump_log_file(self) -> None:
+        if not self.log_buffer and not self.run_records:
+            return
+
+        timestamp = datetime.now()
+        log_dir = Path.cwd() / "gui_logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_path = log_dir / f"pipeline_gui_{timestamp:%Y%m%d_%H%M%S}.log"
+
+        lines: List[str] = []
+        lines.append(f"SATCN Pipeline Test Utility log")
+        lines.append(f"Session closed at: {timestamp.isoformat()}\n")
+
+        if self.run_records:
+            lines.append("Run summary:")
+            for idx, record in enumerate(self.run_records, start=1):
+                started_at = record.get("started_at")
+                est = record.get("estimated_seconds")
+                actual = record.get("actual_seconds")
+                status = record.get("status")
+                output_path = record.get("output_path")
+                status_message = record.get("status_message")
+
+                lines.append(f"  Run {idx}:")
+                if isinstance(started_at, datetime):
+                    lines.append(f"    Started: {started_at.isoformat()}")
+                if isinstance(est, int):
+                    lines.append(f"    Estimated duration: ~{est} seconds")
+                if isinstance(actual, (int, float)):
+                    lines.append(f"    Actual duration: {actual:.2f} seconds")
+                lines.append(f"    Status: {status}")
+                if status_message:
+                    lines.append(f"    Status message: {status_message.strip()}")
+                if isinstance(output_path, Path):
+                    lines.append(f"    Output file: {output_path}")
+                lines.append("")
+
+        lines.append("Full pipeline output log:")
+        lines.extend(self.log_buffer)
+
+        log_path.write_text("\n".join(lines), encoding="utf-8")
 
     # ------------------------------------------------------------------
     def run(self) -> None:
