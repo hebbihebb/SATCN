@@ -124,9 +124,9 @@ class Filter:
 ## Documentation
 
 - **[GPU Setup Guide](docs/GPU_SETUP_GUIDE.md)** - CUDA installation, troubleshooting
-- **[GRMR-V3 Quality Report](GRMR_V3_QUALITY_REPORT.md)** - Real-world 15K-word analysis
+- **[GRMR-V3 Quality Report](.md/GRMR_V3_QUALITY_REPORT.md)** - Real-world 15K-word analysis
 - **[T5 Integration Guide](docs/T5_CORRECTOR_GUIDE.md)** - Transformer model usage
-- **[Contributing Guidelines](CONTRIBUTING.md)** - Development setup
+- **[Contributing Guidelines](docs/CONTRIBUTING.md)** - Development setup
 
 ## Testing
 
@@ -156,7 +156,7 @@ python scripts/test_long_document_gpu.py
 
 ## Contributing
 
-Contributions welcome! See [`CONTRIBUTING.md`](CONTRIBUTING.md) for:
+Contributions welcome! See [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) for:
 - Development setup
 - Code style (Black, Ruff, isort)
 - Testing requirements
@@ -164,7 +164,7 @@ Contributions welcome! See [`CONTRIBUTING.md`](CONTRIBUTING.md) for:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - See repository for license details.
 
 ## Acknowledgments
 
