@@ -225,9 +225,12 @@ class SuccessDialog:
             import os
             import platform
 
+            # Ensure output_path is a string
+            path_str = str(self.output_path)
+
             if platform.system() == "Windows":
-                os.startfile(self.output_path)
+                os.startfile(path_str)
             elif platform.system() == "Darwin":  # macOS
-                os.system(f'open "{self.output_path}"')
+                os.system(f'open "{path_str}"')
             else:  # Linux
-                os.system(f'xdg-open "{self.output_path}"')
+                os.system(f'xdg-open "{path_str}"')

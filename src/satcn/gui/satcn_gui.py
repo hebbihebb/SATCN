@@ -482,17 +482,30 @@ class SATCNPipelineGUI:
                         filters_applied.append("GrammarFilter")
 
                 # Create stats dict
-                stats = CorrectionStats.from_pipeline_output(
-                    output_path=Path(output_path),
-                    total_changes=0,  # TODO: Get from runner if available
-                    processing_time=processing_time,
-                    filters_applied=filters_applied,
-                )
+                try:
+                    stats = CorrectionStats.from_pipeline_output(
+                        output_path=Path(output_path),
+                        total_changes=0,  # TODO: Get from runner if available
+                        processing_time=processing_time,
+                        filters_applied=filters_applied,
+                    )
+                except Exception as stats_error:
+                    # If stats creation fails, use minimal stats
+                    print(f"Warning: Could not create stats: {stats_error}")
+                    stats = {
+                        "output_path": str(output_path),
+                        "total_changes": 0,
+                        "processing_time": processing_time,
+                        "filters_applied": filters_applied,
+                    }
 
                 self.output_queue.put(("success", (output_path, stats)))
 
         except Exception as e:
-            self.output_queue.put(("error", str(e)))
+            import traceback
+
+            error_details = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            self.output_queue.put(("error", error_details))
 
     def _check_queue(self):
         """Check output queue for messages from processing thread."""
@@ -505,7 +518,19 @@ class SATCNPipelineGUI:
                 elif msg_type == "status":
                     self.status_var.set(msg_data)
                 elif msg_type == "success":
-                    output_path, stats = msg_data  # Unpack tuple
+                    # Unpack tuple - handle both old and new formats
+                    if isinstance(msg_data, tuple):
+                        output_path, stats = msg_data
+                    else:
+                        # Fallback for old format (just output_path string)
+                        output_path = msg_data
+                        stats = CorrectionStats.from_pipeline_output(
+                            output_path=Path(output_path),
+                            total_changes=0,
+                            processing_time=0.0,
+                            filters_applied=[],
+                        )
+
                     self._log("\n✅ Pipeline completed successfully!")
                     self._log(f"Output: {output_path}")
                     self.status_var.set("Completed")
