@@ -22,6 +22,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+# Force UTF-8 encoding for stdout to handle Unicode characters
+if sys.stdout.encoding != "utf-8":
+    import codecs
+
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -149,13 +155,28 @@ def load_model(model_path: str, device: str = None) -> GRMRV3GrammarFilter:
 
 def run_quality_test(filter_instance: GRMRV3GrammarFilter, test_case: dict) -> dict[str, Any]:
     """Run a single quality test case."""
-    print(f"  Testing: {test_case['name']}")
+    print(f"  Testing: {test_case['name']}", end=" ", flush=True)
 
     input_text = test_case["input"]
     start_time = time.time()
 
-    # Correct the text
-    output_text = filter_instance.correct_text(input_text)
+    # Correct the text with error handling
+    try:
+        output_text = filter_instance.correct_text(input_text)
+    except KeyboardInterrupt:
+        print("\n⚠️  Test interrupted by user")
+        raise
+    except Exception as e:
+        print(f"\n    ✗ ERROR: {e}")
+        return {
+            "name": test_case["name"],
+            "category": test_case["category"],
+            "input": input_text,
+            "output": None,
+            "error": str(e),
+            "passed": False,
+            "processing_time_ms": 0,
+        }
 
     processing_time = time.time() - start_time
 
@@ -194,8 +215,8 @@ def run_quality_test(filter_instance: GRMRV3GrammarFilter, test_case: dict) -> d
         "processing_time_ms": processing_time * 1000,
     }
 
-    status = "✓ PASS" if passed else "✗ FAIL"
-    print(f"    {status} ({processing_time*1000:.0f}ms)")
+    status = "[PASS]" if passed else "[FAIL]"
+    print(f"{status} ({processing_time*1000:.0f}ms)")
     if fixes_missing:
         print(f"    Missing fixes: {fixes_missing}")
 
