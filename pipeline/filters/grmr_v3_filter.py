@@ -52,20 +52,31 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
         max_new_tokens: int = 256,
         temperature: float = 0.1,
         top_p: float = 0.15,
+        top_k: int = 40,
+        min_p: float = 0.01,
         repeat_penalty: float = 1.05,
+        frequency_penalty: float = 0.0,
+        presence_penalty: float = 0.0,
         device: Optional[str] = None,
         logger: Optional[logging.Logger] = None
     ):
         """
         Initialize the GRMR-V3 grammar correction filter.
         
+        NOTE: Default parameters are from the official GRMR-V3-G4B model card.
+        For more deterministic/conservative corrections, use temperature=0.1.
+        
         Args:
             model_path: Path to the .gguf model file (default: .GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf)
             n_ctx: Context window size (default: 4096 tokens)
             max_new_tokens: Maximum tokens to generate per correction (default: 256)
-            temperature: Sampling temperature - lower = more deterministic (default: 0.1)
+            temperature: Sampling temperature - 0.1 for deterministic (default: 0.1)
             top_p: Nucleus sampling parameter (default: 0.15)
+            top_k: Top-k sampling parameter (default: 40)
+            min_p: Minimum probability threshold (default: 0.01)
             repeat_penalty: Penalty for repeating tokens (default: 1.05)
+            frequency_penalty: Frequency penalty (default: 0.0)
+            presence_penalty: Presence penalty (default: 0.0)
             device: Device to use ('cuda', 'cpu', or None for auto-detect)
             logger: Logger instance (creates one if not provided)
         """
@@ -88,12 +99,16 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
                 f"Expected location: .GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf"
             )
         
-        # Store generation parameters
+        # Store generation parameters (following GRMR-V3-G4B model card recommendations)
         self.n_ctx = n_ctx
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
         self.top_p = top_p
+        self.top_k = top_k
+        self.min_p = min_p
         self.repeat_penalty = repeat_penalty
+        self.frequency_penalty = frequency_penalty
+        self.presence_penalty = presence_penalty
         
         # Determine GPU layers based on device
         if device is None:
@@ -188,9 +203,11 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
                 max_tokens=self.max_new_tokens,
                 temperature=self.temperature,
                 top_p=self.top_p,
+                top_k=self.top_k,
+                min_p=self.min_p,
                 repeat_penalty=self.repeat_penalty,
-                frequency_penalty=0.0,  # No frequency penalty for determinism
-                presence_penalty=0.0,   # No presence penalty for determinism
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
                 stop=["###", "\n\n\n"],  # Stop at section markers or excessive newlines
                 echo=False  # Don't echo the prompt
             )

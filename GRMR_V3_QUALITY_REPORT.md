@@ -219,5 +219,6 @@ The model successfully balances grammatical correctness with narrative style pre
 
 **Report Generated:** October 31, 2025  
 **Model:** GRMR-V3-Q4B.Q4_K_M.gguf (4-bit quantized, 2.38GB)  
+**Base Architecture:** Qwen3 4B (unsloth/Qwen3-4B-Base)  
 **Hardware:** NVIDIA RTX 4060 Laptop GPU, 35/37 layers on GPU  
 **Test Document:** Volin Women's Academy by themoonlightdemon (15,927 words)
