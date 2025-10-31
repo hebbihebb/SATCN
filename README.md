@@ -65,9 +65,35 @@ satcn --use-grmr input.md
 # Hybrid mode (AI + spell-check + rules)
 satcn --use-grmr --grmr-mode hybrid input.epub
 
-# GUI mode
-python -m satcn.gui.pipeline_test_gui
+# GUI mode (modern interface with all options)
+satcn-gui
+# Or: python -m satcn.gui.satcn_gui
+
+# Windows: Double-click launch_satcn_gui.bat
 ```
+
+### GUI Features ✨
+
+The new **SATCN Pipeline GUI** provides a modern, user-friendly interface with:
+
+- **Complete grammar engine selection**: LanguageTool, GRMR-V3 GGUF, T5 Transformer, or None
+- **Visual configuration**: Radio buttons for engines, contextual mode dropdown
+- **Real-time feedback**: Progress bar, live output log with timestamps
+- **File statistics**: Word count, page estimates, processing time predictions
+- **Keyboard shortcuts**: `Ctrl+O` (open), `Ctrl+R` (run), `Esc` (cancel), `Ctrl+Q` (quit)
+- **Persistent settings**: Remembers your preferences between sessions
+- **Tooltips**: Hover over options for detailed explanations
+- **Fail-fast mode**: Stop on first error or continue through pipeline
+- **Dark theme**: Easy on the eyes during long editing sessions
+
+Launch with:
+```bash
+satcn-gui                           # Recommended
+python -m satcn.gui.satcn_gui       # Alternative
+launch_satcn_gui.bat                # Windows double-click
+```
+
+Configuration saved to: `~/.config/satcn/gui_config.json`
 
 ### GPU Acceleration (Optional)
 
@@ -120,6 +146,41 @@ class Filter:
 | **Character Preservation** | 99%+ (proper nouns intact) |
 | **Speed (GPU)** | 1,587 words/minute |
 | **Speed (CPU)** | 438 words/minute |
+
+## GUI Workflow Guide
+
+### First Time Setup
+
+1. **Launch GUI**: Run `satcn-gui` or double-click `launch_satcn_gui.bat` (Windows)
+2. **Browse for file**: Click "Browse..." and select your `.md`, `.txt`, or `.epub` file
+3. **Select grammar engine**:
+   - **GRMR-V3 GGUF** (recommended): Best quality, GPU-accelerated, 1587 wpm
+   - **LanguageTool**: Conservative rule-based, slower but no setup required
+   - **T5 Transformer**: Experimental, requires `pip install -e ".[t5]"`
+   - **None**: Skip grammar correction (use only other filters)
+4. **Choose mode** (for GRMR-V3/T5):
+   - **Replace**: Use only AI model corrections
+   - **Hybrid**: AI model + spell-check + rule-based cleanup
+   - **Supplement**: Rule-based first, then AI model on remaining issues
+5. **Click "Run Pipeline"**: Watch real-time progress and logs
+6. **Find output**: `{input_name}_corrected.{ext}` in same directory
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+O` | Open file browser |
+| `Ctrl+R` | Run pipeline |
+| `Esc` | Cancel processing |
+| `Ctrl+Q` | Quit application |
+
+### Configuration Persistence
+
+Your settings are automatically saved to:
+- **Linux/Mac**: `~/.config/satcn/gui_config.json`
+- **Windows**: `C:\Users\<username>\.config\satcn\gui_config.json`
+
+Next time you launch the GUI, it will remember your last file and preferences.
 
 ## Documentation
 

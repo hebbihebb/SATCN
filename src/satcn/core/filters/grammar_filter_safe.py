@@ -91,7 +91,7 @@ class GrammarCorrectionFilterSafe:
                     "backend": getattr(self, "backend", "unknown"),
                 },
             )
-            return text, {k: 0 for k in stats}
+            return text, dict.fromkeys(stats, 0)
 
         safe_matches = []
         for match in matches:
@@ -116,7 +116,7 @@ class GrammarCorrectionFilterSafe:
         # Final validation of markdown structure
         if not self._validate_markdown_structure(text, corrected_text):
             self.logger.warning("Validation failed; reverting to original text.")
-            return text, {k: 0 for k in stats}
+            return text, dict.fromkeys(stats, 0)
 
         return corrected_text, stats
 

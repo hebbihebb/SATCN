@@ -48,7 +48,7 @@ t5 = [
 ]
 
 gui = [
-    # tkinter is built-in but document requirement
+    "customtkinter>=5.2.0",  # Modern Tkinter wrapper with dark mode
 ]
 
 dev = [
@@ -66,6 +66,7 @@ all = [
 
 [project.scripts]
 satcn = "satcn.cli.main:main"
+satcn-gui = "satcn.gui.satcn_gui:main"
 
 [project.urls]
 Homepage = "https://github.com/hebbihebb/SATCN"

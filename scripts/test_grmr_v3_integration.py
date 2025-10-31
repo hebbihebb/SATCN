@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 MODEL_PATH = Path(".GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf")
 
@@ -48,7 +47,7 @@ def _check_model_file() -> bool:
     return False
 
 
-def _ensure_filter_available() -> Optional[GRMRV3GrammarFilter]:  # type: ignore[name-defined]
+def _ensure_filter_available() -> GRMRV3GrammarFilter | None:  # type: ignore[name-defined]
     if GRMRV3GrammarFilter is None:
         print("❌ GRMRV3GrammarFilter is not available yet.")
         print(

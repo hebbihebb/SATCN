@@ -14,7 +14,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-from typing import Optional
 
 import ebooklib  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
@@ -106,16 +105,16 @@ class PipelineTestGUI:
 
         self._build_layout()
 
-        self.stats: Optional[FileStats] = None
+        self.stats: FileStats | None = None
         self.output_queue: queue.Queue[tuple[str, str]] = queue.Queue()
-        self.process_thread: Optional[threading.Thread] = None
-        self.current_process: Optional[subprocess.Popen[str]] = None
+        self.process_thread: threading.Thread | None = None
+        self.current_process: subprocess.Popen[str] | None = None
         self.cancel_event = threading.Event()
         self.log_buffer: list[str] = []
         self.run_records: list[dict[str, object]] = []
-        self._current_run_start_perf: Optional[float] = None
-        self._current_run_start_time: Optional[datetime] = None
-        self._current_estimated_seconds: Optional[int] = None
+        self._current_run_start_perf: float | None = None
+        self._current_run_start_time: datetime | None = None
+        self._current_estimated_seconds: int | None = None
 
         self._poll_output_queue()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -225,7 +224,7 @@ class PipelineTestGUI:
             self.stats = None
             self._display_stats(None)
 
-    def _display_stats(self, stats: Optional[FileStats]) -> None:
+    def _display_stats(self, stats: FileStats | None) -> None:
         self.stats_text.config(state="normal")
         self.stats_text.delete("1.0", tk.END)
         if not stats:
@@ -267,7 +266,7 @@ class PipelineTestGUI:
         self.status_var.set("Running pipeline...")
         self._append_log("Starting pipeline run...\n")
 
-        estimated_seconds: Optional[int] = None
+        estimated_seconds: int | None = None
         if self.stats and self.stats.word_count:
             # Use slower estimate if T5 correction is enabled
             wps = WORDS_PER_SECOND_T5 if self.use_t5_var.get() else WORDS_PER_SECOND
@@ -309,11 +308,11 @@ class PipelineTestGUI:
     def _execute_pipeline(
         self,
         original_path: Path,
-        start_perf: Optional[float],
-        start_time: Optional[datetime],
-        estimated_seconds: Optional[int],
+        start_perf: float | None,
+        start_time: datetime | None,
+        estimated_seconds: int | None,
     ) -> None:
-        temp_dir: Optional[Path] = None
+        temp_dir: Path | None = None
         input_path = original_path
         txt_mode = original_path.suffix.lower() == ".txt"
         status_label = "failed"
@@ -361,8 +360,8 @@ class PipelineTestGUI:
         finally:
             self.current_process = None
 
-        output_path: Optional[Path] = None
-        status_message: Optional[str] = None
+        output_path: Path | None = None
+        status_message: str | None = None
         try:
             if rc == 0 and not self.cancel_event.is_set():
                 if txt_mode:
@@ -400,7 +399,7 @@ class PipelineTestGUI:
                 shutil.rmtree(temp_dir, ignore_errors=True)
 
         end_perf = time.perf_counter() if start_perf is not None else None
-        actual_seconds: Optional[float] = None
+        actual_seconds: float | None = None
         if start_perf is not None and end_perf is not None:
             actual_seconds = end_perf - start_perf
             estimate_text = (
@@ -489,7 +488,7 @@ class PipelineTestGUI:
                     lines.append(f"    Started: {started_at.isoformat()}")
                 if isinstance(est, int):
                     lines.append(f"    Estimated duration: ~{est} seconds")
-                if isinstance(actual, (int, float)):
+                if isinstance(actual, int | float):
                     lines.append(f"    Actual duration: {actual:.2f} seconds")
                 lines.append(f"    Status: {status}")
                 if status_message:

@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
-from typing import Optional
 
 from satcn.core.filters.grmr_v3_filter import GRMRV3GrammarFilter
 
@@ -231,7 +230,7 @@ class GRMRV3TestGUI:
             self.stats = None
             self._display_stats(None)
 
-    def _display_stats(self, stats: Optional[FileStats]):
+    def _display_stats(self, stats: FileStats | None):
         """Display file statistics."""
         self.stats_text.config(state="normal")
         self.stats_text.delete("1.0", tk.END)

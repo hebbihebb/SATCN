@@ -15,7 +15,7 @@ Context window: 4096 tokens (vs T5's 512)
 import logging
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 try:
     from llama_cpp import Llama
@@ -48,7 +48,7 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
 
     def __init__(
         self,
-        model_path: Optional[str] = None,
+        model_path: str | None = None,
         n_ctx: int = 4096,
         max_new_tokens: int = 256,
         temperature: float = 0.1,
@@ -58,8 +58,8 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
         repeat_penalty: float = 1.05,
         frequency_penalty: float = 0.0,
         presence_penalty: float = 0.0,
-        device: Optional[str] = None,
-        logger: Optional[logging.Logger] = None,
+        device: str | None = None,
+        logger: logging.Logger | None = None,
     ):
         """
         Initialize the GRMR-V3 grammar correction filter.

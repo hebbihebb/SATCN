@@ -28,7 +28,6 @@ Example:
 """
 
 import logging
-from typing import Optional, Union
 
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
@@ -70,12 +69,12 @@ class T5Corrector:
 
     def __init__(
         self,
-        model_name: Optional[str] = None,
-        device: Optional[str] = None,
+        model_name: str | None = None,
+        device: str | None = None,
         max_length: int = 512,
         num_beams: int = 2,  # Reduced from 4 for faster, less creative corrections
         use_half_precision: bool = True,
-        logger: Optional[logging.Logger] = None,
+        logger: logging.Logger | None = None,
     ):
         """
         Initialize the T5 corrector.
@@ -116,7 +115,7 @@ class T5Corrector:
         # Statistics tracking
         self.stats = {"corrections_made": 0, "texts_processed": 0, "errors": 0}
 
-    def _detect_device(self, device: Optional[str]) -> str:
+    def _detect_device(self, device: str | None) -> str:
         """
         Detect the best available computing device.
 
@@ -195,7 +194,7 @@ class T5Corrector:
             self.logger.error(f"Failed to load T5 model: {e}", exc_info=True)
             raise RuntimeError(f"Could not load T5 model '{self.model_name}': {e}") from e
 
-    def correct(self, text: str, return_confidence: bool = False) -> Union[str, tuple[str, float]]:
+    def correct(self, text: str, return_confidence: bool = False) -> str | tuple[str, float]:
         """
         Correct a single text string.
 
