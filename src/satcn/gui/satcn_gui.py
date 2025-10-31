@@ -462,12 +462,25 @@ class SATCNPipelineGUI:
             )
 
             # Run pipeline (this will take time)
-            output_path = runner.run()
+            result = runner.run()
             end_time = time.time()
 
             if self.cancel_flag:
                 self.output_queue.put(("status", "Cancelled by user"))
             else:
+                # Extract output path from result
+                # PipelineRunner.run() returns a dict with 'output_filepath' key
+                if isinstance(result, dict):
+                    output_path = result.get("output_filepath", result.get("filepath", ""))
+                    if not output_path:
+                        # Log for debugging
+                        print(
+                            f"Warning: Could not find output path in result keys: {result.keys()}"
+                        )
+                        output_path = ""
+                else:
+                    output_path = str(result)
+
                 # Gather statistics
                 processing_time = end_time - start_time
 
