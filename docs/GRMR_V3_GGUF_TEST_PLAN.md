@@ -157,12 +157,15 @@ Store the model directory at the repository root (next to `flan-t5-large-grammar
 
 ## Next Steps Checklist
 
-1. [ ] Install llama-cpp runtime and validate `llama_cpp` import.
-2. [ ] Implement `GRMRV3GrammarFilter` wrapper (see Implementation Overview).
+1. [x] Install llama-cpp runtime and validate `llama_cpp` import. ✅ **Done Oct 31, 2025**
+2. [x] Implement `GRMRV3GrammarFilter` wrapper (see Implementation Overview). ✅ **Done Oct 31, 2025**
 3. [ ] Add automated tests outlined above (unit + integration + regression).
-4. [ ] Fill out `test_grmr_v3_integration.py` expected outputs once model tuned.
+4. [x] Fill out `test_grmr_v3_integration.py` expected outputs once model tuned. ✅ **Working**
 5. [ ] Run benchmark suite; compare against `docs/T5_TESTING_SESSION_OCT2025.md` metrics.
-6. [ ] Update documentation and announce experimental availability.
+6. [x] Update documentation and announce experimental availability. ✅ **See GRMR_V3_INSTALLATION_NOTES.md**
+
+**Note:** Steps 1, 2, 4, and 6 completed on Oct 31, 2025. CPU-only installation (GPU requires CUDA toolkit).
+Integration test passing with good corrections. Character name preservation confirmed.
 
 Once these steps pass, schedule a follow-up evaluation session mirroring the
 structure used for the October 2025 T5 trial.

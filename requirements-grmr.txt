@@ -1,0 +1,37 @@
+# GRMR-V3 GGUF Model Dependencies
+# ====================================
+# 
+# This file lists dependencies for the GRMR-V3 GGUF grammar correction model.
+# The GRMR-V3 model uses llama.cpp bindings for local inference.
+#
+# Installation Instructions:
+# --------------------------
+#
+# CPU-only (simpler, no GPU acceleration):
+#   pip install -r requirements-grmr.txt
+#
+# NVIDIA GPU (requires CUDA toolkit installed):
+#   $env:CMAKE_ARGS="-DLLAMA_CUDA=on"
+#   pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
+#   pip install -r requirements-grmr.txt
+#
+# AMD GPU (ROCm):
+#   $env:CMAKE_ARGS="-DLLAMA_HIPBLAS=on"
+#   pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
+#   pip install -r requirements-grmr.txt
+#
+# Apple Silicon (Metal):
+#   $env:CMAKE_ARGS="-DLLAMA_METAL=on"
+#   pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
+#   pip install -r requirements-grmr.txt
+#
+# Note: The model file (.gguf) is NOT included in the repository.
+# Model location: .GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf
+# (already in .gitignore under *.gguf pattern)
+
+# Core dependencies
+llama-cpp-python>=0.2.90
+numpy>=1.24.0
+
+# Optional: Prompt caching for faster repeated corrections
+diskcache>=5.6.0
