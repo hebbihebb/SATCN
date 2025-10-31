@@ -16,10 +16,7 @@ from typing import Optional, Dict
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, scrolledtext
 
-# Ensure we can import from parent directory
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from pipeline.filters.grmr_v3_filter import GRMRV3GrammarFilter
+from satcn.core.filters.grmr_v3_filter import GRMRV3GrammarFilter
 
 
 SUPPORTED_EXTENSIONS = {".txt", ".md"}

@@ -1,7 +1,7 @@
 import logging
 import time
 
-from pipeline.utils.language_tool_utils import get_language_tool
+from satcn.core.utils.language_tool_utils import get_language_tool
 
 class GrammarCorrectionFilterSafe:
     def __init__(self):
