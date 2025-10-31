@@ -1,27 +1,68 @@
-# Python
+# Python bytecode & caches
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
 *.pyo
 *.pyd
+.Python
 
-# Environment
+# Virtual environments
 .env
-.venv
+.venv/
 .venv-gpu/
+.venv310/
 venv/
 env/
+ENV/
+env.bak/
+venv.bak/
 
-# Local virtual environments
-.venv310/
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+*.egg
+MANIFEST
+pip-wheel-metadata/
 
-# IDE
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# IDEs and editors
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
+.DS_Store
 
-# VS Code workspace
-.vscode/
-
-# Test output
+# Project-specific test outputs
 corpus/*_corrected.md
 corpus/*_corrected.epub
 tests/regression_corpus/*_corrected.md
@@ -29,23 +70,41 @@ tools/*_corrected.md
 tools/*_corrected.epub
 tools/test_*.md
 
-# Models
-models/
-
-# Pip cache
-pip-wheel-metadata/
-*.egg-info/
-
 # Log files
 *.log
 gui_logs/
+logs/
+
+# Models and caches
+models/
+.GRMR-V3-Q4B-GGUF/
+flan-t5-large-grammar-synthesis/
+*.gguf
+*.bin
+*.pt
+*.safetensors
 
 # Huggingface/transformers/torch cache
 ~/.cache/
 ~/.torch/
 ~/.huggingface/
+.cache/
+__pypackages__/
 
-# Large model files
-*.gguf
-*.bin
-*.pt
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Backup files
+*.bak
+*~

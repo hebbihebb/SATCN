@@ -79,10 +79,10 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "=" * 60 -ForegroundColor Green
     Write-Host ""
     Write-Host "Testing GPU acceleration..." -ForegroundColor Cyan
-    
+
     # Run test
     python test_grmr_v3_integration.py
-    
+
     Write-Host ""
     Write-Host "Check output above for:" -ForegroundColor Cyan
     Write-Host "  - 'Using CUDA for GRMR-V3 inference (GPU acceleration)'" -ForegroundColor White
@@ -91,7 +91,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Run benchmark for detailed comparison:" -ForegroundColor Cyan
     Write-Host "  python benchmark_grmr_vs_t5.py" -ForegroundColor White
     Write-Host ""
-    
+
 } else {
     Write-Host ""
     Write-Host "=" * 60 -ForegroundColor Red

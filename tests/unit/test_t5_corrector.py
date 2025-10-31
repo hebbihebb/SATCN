@@ -10,10 +10,11 @@ These tests verify the T5Corrector class functionality including:
 - Error handling
 """
 
-import pytest
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -23,9 +24,9 @@ sys.path.insert(0, str(project_root))
 class TestT5CorrectorInit:
     """Test T5Corrector initialization and configuration."""
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def test_init_default_params(self, mock_torch, mock_model_class, mock_tokenizer_class):
         """Test initialization with default parameters."""
         from satcn.correction import T5Corrector
@@ -41,9 +42,9 @@ class TestT5CorrectorInit:
         assert corrector.num_beams == 4
         assert corrector.use_half_precision is True
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def test_init_custom_params(self, mock_torch, mock_model_class, mock_tokenizer_class):
         """Test initialization with custom parameters."""
         from satcn.correction import T5Corrector
@@ -55,7 +56,7 @@ class TestT5CorrectorInit:
             device="cpu",
             max_length=256,
             num_beams=2,
-            use_half_precision=False
+            use_half_precision=False,
         )
 
         assert corrector.model_name == "custom-model"
@@ -64,9 +65,9 @@ class TestT5CorrectorInit:
         assert corrector.num_beams == 2
         assert corrector.use_half_precision is False
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def test_device_detection_cuda(self, mock_torch, mock_model_class, mock_tokenizer_class):
         """Test CUDA device detection."""
         from satcn.correction import T5Corrector
@@ -78,10 +79,12 @@ class TestT5CorrectorInit:
 
         assert corrector.device == "cuda"
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
-    def test_device_detection_cpu_fallback(self, mock_torch, mock_model_class, mock_tokenizer_class):
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
+    def test_device_detection_cpu_fallback(
+        self, mock_torch, mock_model_class, mock_tokenizer_class
+    ):
         """Test CPU fallback when no GPU available."""
         from satcn.correction import T5Corrector
 
@@ -92,9 +95,9 @@ class TestT5CorrectorInit:
 
         assert corrector.device == "cpu"
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def test_list_models(self, mock_torch, mock_model_class, mock_tokenizer_class):
         """Test listing available models."""
         from satcn.correction import T5Corrector
@@ -110,9 +113,9 @@ class TestT5CorrectorInit:
 class TestT5CorrectorCorrection:
     """Test T5Corrector text correction functionality."""
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def setup_method(self, method):
         """Set up test fixtures."""
         from satcn.correction import T5Corrector
@@ -130,9 +133,9 @@ class TestT5CorrectorCorrection:
         result = self.corrector.correct("   ")
         assert result == "   "
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def test_correct_with_mock(self, mock_torch, mock_model_class, mock_tokenizer_class):
         """Test text correction with mocked model."""
         from satcn.correction import T5Corrector
@@ -170,9 +173,9 @@ class TestT5CorrectorCorrection:
 class TestT5CorrectorBatch:
     """Test T5Corrector batch processing."""
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def setup_method(self, method):
         """Set up test fixtures."""
         from satcn.correction import T5Corrector
@@ -186,13 +189,13 @@ class TestT5CorrectorBatch:
 
     def test_correct_batch_single_item(self):
         """Test batch correction with single item."""
-        with patch.object(self.corrector, 'correct', return_value="corrected"):
+        with patch.object(self.corrector, "correct", return_value="corrected"):
             results = self.corrector.correct_batch(["test"])
             assert len(results) == 1
 
     def test_correct_batch_multiple_items(self):
         """Test batch correction with multiple items."""
-        with patch.object(self.corrector, 'correct', side_effect=lambda x: f"corrected_{x}"):
+        with patch.object(self.corrector, "correct", side_effect=lambda x: f"corrected_{x}"):
             texts = ["text1", "text2", "text3"]
             results = self.corrector.correct_batch(texts)
 
@@ -203,9 +206,9 @@ class TestT5CorrectorBatch:
 class TestT5CorrectorPipeline:
     """Test T5Corrector pipeline integration."""
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def setup_method(self, method):
         """Set up test fixtures."""
         from satcn.correction import T5Corrector
@@ -236,7 +239,7 @@ class TestT5CorrectorPipeline:
             ]
         }
 
-        with patch.object(self.corrector, 'correct', side_effect=lambda x: f"Corrected {x}"):
+        with patch.object(self.corrector, "correct", side_effect=lambda x: f"Corrected {x}"):
             result = self.corrector.process(data)
 
             assert result["text_blocks"][0]["content"] == "Corrected Text one"
@@ -252,7 +255,7 @@ class TestT5CorrectorPipeline:
             ]
         }
 
-        with patch.object(self.corrector, 'correct', side_effect=lambda x: f"Corrected {x}"):
+        with patch.object(self.corrector, "correct", side_effect=lambda x: f"Corrected {x}"):
             result = self.corrector.process(data)
 
             # Empty blocks should remain unchanged
@@ -264,9 +267,9 @@ class TestT5CorrectorPipeline:
 class TestT5CorrectorStats:
     """Test T5Corrector statistics tracking."""
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def setup_method(self, method):
         """Set up test fixtures."""
         from satcn.correction import T5Corrector
@@ -283,7 +286,7 @@ class TestT5CorrectorStats:
 
     def test_stats_after_corrections(self):
         """Test statistics after corrections."""
-        with patch.object(self.corrector, 'correct', side_effect=lambda x: x.upper()):
+        with patch.object(self.corrector, "correct", side_effect=lambda x: x.upper()):
             self.corrector.correct("text1")
             self.corrector.correct("text2")
 
@@ -294,7 +297,7 @@ class TestT5CorrectorStats:
     def test_reset_stats(self):
         """Test resetting statistics."""
         # Make some corrections
-        with patch.object(self.corrector, 'correct', return_value="corrected"):
+        with patch.object(self.corrector, "correct", return_value="corrected"):
             self.corrector.correct("test")
 
         # Reset stats
@@ -309,9 +312,9 @@ class TestT5CorrectorStats:
 class TestT5CorrectorErrorHandling:
     """Test T5Corrector error handling."""
 
-    @patch('satcn.correction.t5_corrector.AutoTokenizer')
-    @patch('satcn.correction.t5_corrector.AutoModelForSeq2SeqLM')
-    @patch('satcn.correction.t5_corrector.torch')
+    @patch("satcn.correction.t5_corrector.AutoTokenizer")
+    @patch("satcn.correction.t5_corrector.AutoModelForSeq2SeqLM")
+    @patch("satcn.correction.t5_corrector.torch")
     def setup_method(self, method):
         """Set up test fixtures."""
         from satcn.correction import T5Corrector
@@ -321,7 +324,9 @@ class TestT5CorrectorErrorHandling:
     def test_correct_on_error_returns_original(self):
         """Test that errors return original text."""
         # Force an error in the correction process
-        with patch.object(self.corrector.tokenizer, '__call__', side_effect=Exception("Test error")):
+        with patch.object(
+            self.corrector.tokenizer, "__call__", side_effect=Exception("Test error")
+        ):
             result = self.corrector.correct("test text")
 
             # Should return original text
@@ -330,7 +335,9 @@ class TestT5CorrectorErrorHandling:
     def test_error_statistics_tracking(self):
         """Test that errors are tracked in statistics."""
         # Force an error
-        with patch.object(self.corrector.tokenizer, '__call__', side_effect=Exception("Test error")):
+        with patch.object(
+            self.corrector.tokenizer, "__call__", side_effect=Exception("Test error")
+        ):
             self.corrector.correct("test")
 
             stats = self.corrector.get_stats()
@@ -340,7 +347,7 @@ class TestT5CorrectorErrorHandling:
 # Integration test (skipped if model not available)
 @pytest.mark.skipif(
     True,  # Always skip in unit tests (set to False to run with actual model)
-    reason="Requires T5 model download and GPU for reasonable performance"
+    reason="Requires T5 model download and GPU for reasonable performance",
 )
 class TestT5CorrectorIntegration:
     """Integration tests with actual T5 model (slow, requires model download)."""
@@ -354,7 +361,7 @@ class TestT5CorrectorIntegration:
 
         # Should correct errors
         assert "sentence" in result.lower() or "sentance" not in result.lower()
-        print(f"Original: 'This sentance have many erors in it.'")
+        print("Original: 'This sentance have many erors in it.'")
         print(f"Corrected: '{result}'")
 
 

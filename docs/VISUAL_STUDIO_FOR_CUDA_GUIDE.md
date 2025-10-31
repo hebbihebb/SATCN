@@ -14,7 +14,7 @@
 1. Run the installer
 2. In the "Workloads" tab, select:
    - ✅ **Desktop development with C++** (REQUIRED)
-   
+
 3. In the "Individual components" tab, verify these are checked:
    - ✅ **MSVC v143 - VS 2022 C++ x64/x86 build tools** (latest)
    - ✅ **Windows 10 SDK** or **Windows 11 SDK** (10.0.19041.0 or newer)
@@ -34,7 +34,7 @@
 1. Run the installer
 2. In the "Workloads" tab, select:
    - ✅ **Desktop development with C++** (REQUIRED)
-   
+
 3. On the right side under "Installation details", ensure these are included:
    - ✅ **MSVC v143 - VS 2022 C++ x64/x86 build tools** (latest)
    - ✅ **Windows 10 SDK** or **Windows 11 SDK**
@@ -58,7 +58,7 @@ After installing Visual Studio:
    ```powershell
    # Check if CUDA can find Visual Studio
    nvcc --version
-   
+
    # Check Visual Studio version
    "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
    ```
@@ -98,12 +98,12 @@ This happens because:
 3. **Rebuild llama-cpp-python** (~5-10 minutes)
    ```powershell
    .venv\Scripts\Activate.ps1
-   
+
    # Set environment variables
    $env:PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.1\bin;" + $env:PATH
    $env:CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.1"
    $env:CMAKE_ARGS = "-DGGML_CUDA=on"
-   
+
    # Build with CUDA
    python -m pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir
    ```

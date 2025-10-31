@@ -22,7 +22,7 @@ if (Test-Path $cudaBasePath) {
         $env:CUDA_HOME = $env:CUDA_PATH
         # Add both bin and bin\x64 to PATH (cuBLAS is in bin\x64)
         $env:PATH = "$env:CUDA_PATH\bin\x64;$env:CUDA_PATH\bin;$env:PATH"
-        
+
         Write-Host "Found CUDA installation: $($cudaVersions[0].Name)" -ForegroundColor Green
         Write-Host "CUDA_PATH: $env:CUDA_PATH" -ForegroundColor Green
         Write-Host "CUDA_HOME: $env:CUDA_HOME" -ForegroundColor Green
