@@ -42,5 +42,5 @@ pip install -e ".[all]"       # Everything
 
 ## Reference
 
-See `MIGRATION.md` in the root directory for complete migration guide.
-See `RESTRUCTURE_SUMMARY.md` for detailed restructure notes.
+See `.md/MIGRATION.md` for complete migration guide.
+See `.md/RESTRUCTURE_SUMMARY.md` for detailed restructure notes.
