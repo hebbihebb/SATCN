@@ -1,8 +1,10 @@
 # pipeline/filters/t5_grammar_filter.py
 
 import logging
+
 import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
 
 class T5GrammarFilter:
     """
@@ -15,8 +17,9 @@ class T5GrammarFilter:
     Model: pszemraj/flan-t5-large-grammar-synthesis
     """
 
-    def __init__(self, model_name="pszemraj/flan-t5-large-grammar-synthesis",
-                 max_length=512, device=None):
+    def __init__(
+        self, model_name="pszemraj/flan-t5-large-grammar-synthesis", max_length=512, device=None
+    ):
         """
         Initialize the T5 grammar correction filter.
 
@@ -47,9 +50,7 @@ class T5GrammarFilter:
             dtype = torch.float16 if device == "cuda" else torch.float32
 
             self.model = AutoModelForSeq2SeqLM.from_pretrained(
-                model_name,
-                torch_dtype=dtype,
-                device_map=device if device == "cuda" else None
+                model_name, torch_dtype=dtype, device_map=device if device == "cuda" else None
             )
 
             if device == "cpu":
@@ -82,7 +83,7 @@ class T5GrammarFilter:
                 return_tensors="pt",
                 max_length=self.max_length,
                 truncation=True,
-                padding=False
+                padding=False,
             )
 
             # Move to device
@@ -94,7 +95,7 @@ class T5GrammarFilter:
                     **inputs,
                     max_new_tokens=self.max_length,
                     num_beams=4,  # Beam search for better quality
-                    early_stopping=True
+                    early_stopping=True,
                 )
 
             # Decode output
@@ -117,14 +118,14 @@ class T5GrammarFilter:
         Returns:
             dict: Modified data with corrected text blocks
         """
-        if 'text_blocks' not in data:
+        if "text_blocks" not in data:
             self.logger.warning("No text_blocks found in data")
             return data
 
         corrections_made = 0
 
-        for i, block in enumerate(data['text_blocks']):
-            original_content = block.get('content', '')
+        for i, block in enumerate(data["text_blocks"]):
+            original_content = block.get("content", "")
 
             if not original_content or len(original_content.strip()) == 0:
                 continue
@@ -134,9 +135,11 @@ class T5GrammarFilter:
 
             # Update block if changed
             if corrected_content != original_content:
-                block['content'] = corrected_content
+                block["content"] = corrected_content
                 corrections_made += 1
-                self.logger.debug(f"Block {i}: '{original_content[:50]}...' -> '{corrected_content[:50]}...'")
+                self.logger.debug(
+                    f"Block {i}: '{original_content[:50]}...' -> '{corrected_content[:50]}...'"
+                )
 
         self.logger.info(f"T5 grammar filter corrected {corrections_made} blocks")
 

@@ -1,9 +1,10 @@
 """
 Simple GPU test - just check if GPU layers parameter works
 """
-from llama_cpp import Llama
-from pathlib import Path
 import os
+from pathlib import Path
+
+from llama_cpp import Llama
 
 # Add CUDA to PATH
 cuda_path = r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.0\bin\x64"
@@ -22,17 +23,18 @@ try:
         model_path=str(model_path),
         n_ctx=512,  # Use model's training context size
         n_gpu_layers=10,
-        verbose=True
+        verbose=True,
     )
     print("✅ Model loaded successfully with GPU support!")
-    
+
     # Try a simple generation
     print("\nTesting inference...")
     result = model("Hello", max_tokens=5)
-    print(f"✅ Inference successful!")
+    print("✅ Inference successful!")
     print(f"Output: {result['choices'][0]['text']}")
-    
+
 except Exception as e:
     print(f"❌ Error: {e}")
     import traceback
+
     traceback.print_exc()

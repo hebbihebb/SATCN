@@ -1,8 +1,8 @@
 # GRMR-V3 GPU Acceleration Setup Guide
 
-**Date:** October 31, 2025  
-**GPU:** NVIDIA GeForce RTX 4060 Laptop GPU  
-**CUDA Version:** 13.0 (Driver)  
+**Date:** October 31, 2025
+**GPU:** NVIDIA GeForce RTX 4060 Laptop GPU
+**CUDA Version:** 13.0 (Driver)
 **Current Status:** CPU-only llama-cpp-python installed
 
 ## Quick Start (Try This First)

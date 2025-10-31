@@ -42,11 +42,11 @@
 def _preserve_markdown_patterns(self, original: str, corrected: str) -> str:
     """Restore original markdown patterns if simplified."""
     import re
-    
+
     # Find all triple-asterisk patterns in original
     triple_pattern = r'\*\*\*(.+?)\*\*\*'
     original_triples = re.findall(triple_pattern, original)
-    
+
     # If corrected has simplified these, restore them
     for content in original_triples:
         # Check if it was simplified to ** or *
@@ -60,7 +60,7 @@ def _preserve_markdown_patterns(self, original: str, corrected: str) -> str:
             f'***{content}***',
             corrected
         )
-    
+
     return corrected
 ```
 

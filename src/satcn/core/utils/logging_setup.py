@@ -1,20 +1,23 @@
-import logging
 import json
-from datetime import datetime, timezone
+import logging
+from datetime import UTC, datetime
+
 
 class JsonFormatter(logging.Formatter):
     """
     Formats log records as JSON.
     """
+
     def format(self, record):
         log_record = {
-            "timestamp": datetime.fromtimestamp(record.created, timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, UTC).isoformat(),
             "log_level": record.levelname,
-            "message": record.getMessage()
+            "message": record.getMessage(),
         }
-        if hasattr(record, 'extra_data'):
+        if hasattr(record, "extra_data"):
             log_record.update(record.extra_data)
         return json.dumps(log_record)
+
 
 def setup_logging():
     """

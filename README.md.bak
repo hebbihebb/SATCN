@@ -80,11 +80,11 @@ Input File → Parser → [Correction Filters] → TTS Normalizer → Output Gen
 
 ### 3.2 Key Design Decisions
 
-✅ **Separation of concerns** - Each filter has one job  
-✅ **Metadata preservation** - Formatting survives correction  
-✅ **Mode flexibility** - Swap filters at runtime (`--use-grmr`, `--use-t5`)  
-✅ **Fail-fast support** - Stop on first error or continue  
-✅ **JSON logging** - Structured logs with per-filter statistics  
+✅ **Separation of concerns** - Each filter has one job
+✅ **Metadata preservation** - Formatting survives correction
+✅ **Mode flexibility** - Swap filters at runtime (`--use-grmr`, `--use-t5`)
+✅ **Fail-fast support** - Stop on first error or continue
+✅ **JSON logging** - Structured logs with per-filter statistics
 
 ---
 
@@ -94,8 +94,8 @@ The project has explored three approaches to grammar correction:
 
 ### 4.1 LanguageTool (Rule-Based) - Baseline
 
-**Status:** ✅ Working, but slow  
-**Implementation:** `GrammarCorrectionFilterSafe`  
+**Status:** ✅ Working, but slow
+**Implementation:** `GrammarCorrectionFilterSafe`
 **Backend:** LanguageTool public API with conservative ruleset
 
 **Pros:**
@@ -112,8 +112,8 @@ The project has explored three approaches to grammar correction:
 
 ### 4.2 T5 Transformer (ML-Based) - Experimental
 
-**Status:** ⚠️ Experimental, memory-intensive  
-**Implementation:** `T5CorrectionFilter`  
+**Status:** ⚠️ Experimental, memory-intensive
+**Implementation:** `T5CorrectionFilter`
 **Model:** FLAN-T5 (Hugging Face)
 
 **Pros:**
@@ -135,8 +135,8 @@ The project has explored three approaches to grammar correction:
 
 ### 4.3 GRMR-V3 GGUF (Quantized ML) - **Recommended** ⭐
 
-**Status:** ✅ Production-ready, GPU-accelerated  
-**Implementation:** `GRMRV3GrammarFilter`  
+**Status:** ✅ Production-ready, GPU-accelerated
+**Implementation:** `GRMRV3GrammarFilter`
 **Model:** GRMR-V3-Q4B (Qwen3 4B, 4-bit quantized, 2.5GB)
 
 **Pros:**
@@ -176,22 +176,22 @@ python -m pipeline.pipeline_runner --use-grmr --grmr-mode hybrid input.epub
 
 ### 5.1 What Worked
 
-✅ **Pipes-and-Filters architecture** - Clean separation of concerns, easy to test  
-✅ **GGUF quantized models** - Best balance of quality, speed, and memory  
-✅ **GPU acceleration** - 3.62x speedup makes batch processing practical  
-✅ **Paragraph-level chunking** - Fits within context windows, preserves context  
-✅ **Deterministic parameters** - `temperature=0.1` ensures consistent output  
-✅ **Comprehensive testing** - Unit, integration, regression tests caught issues early  
-✅ **JSON logging** - Made debugging and optimization much easier  
+✅ **Pipes-and-Filters architecture** - Clean separation of concerns, easy to test
+✅ **GGUF quantized models** - Best balance of quality, speed, and memory
+✅ **GPU acceleration** - 3.62x speedup makes batch processing practical
+✅ **Paragraph-level chunking** - Fits within context windows, preserves context
+✅ **Deterministic parameters** - `temperature=0.1` ensures consistent output
+✅ **Comprehensive testing** - Unit, integration, regression tests caught issues early
+✅ **JSON logging** - Made debugging and optimization much easier
 
 ### 5.2 What Didn't Work
 
-❌ **JamSpell** - Never got it working reliably, abandoned  
-❌ **T5 GPU inference via GGUF** - Runtime crashes with T5 architecture  
-❌ **Higher temperature** - `temperature=0.7` introduced grammar errors  
-❌ **Deep Markdown nesting** - Parser/writer struggles with complex inline formatting  
-❌ **EPUB full coverage** - Only handles `<p>` tags, skips headers/lists  
-❌ **LanguageTool local JVM** - Too slow, switched to public API  
+❌ **JamSpell** - Never got it working reliably, abandoned
+❌ **T5 GPU inference via GGUF** - Runtime crashes with T5 architecture
+❌ **Higher temperature** - `temperature=0.7` introduced grammar errors
+❌ **Deep Markdown nesting** - Parser/writer struggles with complex inline formatting
+❌ **EPUB full coverage** - Only handles `<p>` tags, skips headers/lists
+❌ **LanguageTool local JVM** - Too slow, switched to public API
 
 ### 5.3 Key Insights
 
@@ -253,7 +253,7 @@ pip install llama-cpp-python
 - Python 3.11 (3.13 not yet supported for GPU builds)
 - ~38 minute compilation time
 
-**Build script:** `install_llama_cpp_cuda.ps1`  
+**Build script:** `install_llama_cpp_cuda.ps1`
 **Setup guide:** `docs/GPU_SETUP_GUIDE.md`
 
 ### 6.4 System Requirements

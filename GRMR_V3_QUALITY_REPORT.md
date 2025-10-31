@@ -113,11 +113,11 @@ The GRMR-V3 model successfully corrected **15,927 words** across **347 paragraph
 ## Punctuation Improvements
 
 ### Hyphenation
-**Original:** `21 year old female`  
+**Original:** `21 year old female`
 **Corrected:** `21-year-old female`
 
 ### Possessive Forms
-**Original:** `the world most dangerous`  
+**Original:** `the world most dangerous`
 **Corrected:** `the world's most dangerous`
 
 ### Comma Placement
@@ -156,7 +156,7 @@ Improved comma usage for better readability and proper clause separation through
 ### Markdown Cleanup
 The model cleaned up escaped markdown characters while preserving document structure:
 
-**Before:** `\*\*Category:\*\* General Fiction`  
+**Before:** `\*\*Category:\*\* General Fiction`
 **After:** `**Category:** General Fiction`
 
 This improved readability without changing the semantic meaning.
@@ -217,8 +217,8 @@ The model successfully balances grammatical correctness with narrative style pre
 
 ---
 
-**Report Generated:** October 31, 2025  
-**Model:** GRMR-V3-Q4B.Q4_K_M.gguf (4-bit quantized, 2.38GB)  
-**Base Architecture:** Qwen3 4B (unsloth/Qwen3-4B-Base)  
-**Hardware:** NVIDIA RTX 4060 Laptop GPU, 35/37 layers on GPU  
+**Report Generated:** October 31, 2025
+**Model:** GRMR-V3-Q4B.Q4_K_M.gguf (4-bit quantized, 2.38GB)
+**Base Architecture:** Qwen3 4B (unsloth/Qwen3-4B-Base)
+**Hardware:** NVIDIA RTX 4060 Laptop GPU, 35/37 layers on GPU
 **Test Document:** Volin Women's Academy by themoonlightdemon (15,927 words)

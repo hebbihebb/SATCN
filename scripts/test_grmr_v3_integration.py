@@ -22,9 +22,9 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
-MODEL_PATH = Path('.GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf')
+MODEL_PATH = Path(".GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf")
 
 try:
     from pipeline.filters.grmr_v3_filter import GRMRV3GrammarFilter  # type: ignore
@@ -51,7 +51,9 @@ def _check_model_file() -> bool:
 def _ensure_filter_available() -> Optional[GRMRV3GrammarFilter]:  # type: ignore[name-defined]
     if GRMRV3GrammarFilter is None:
         print("❌ GRMRV3GrammarFilter is not available yet.")
-        print("   Implement pipeline.filters.grmr_v3_filter.GRMRV3GrammarFilter as outlined in docs/GRMR_V3_GGUF_TEST_PLAN.md")
+        print(
+            "   Implement pipeline.filters.grmr_v3_filter.GRMRV3GrammarFilter as outlined in docs/GRMR_V3_GGUF_TEST_PLAN.md"
+        )
         return None
 
     try:
@@ -66,12 +68,12 @@ def _ensure_filter_available() -> Optional[GRMRV3GrammarFilter]:  # type: ignore
 
 def _demo_sentences(filter_instance: GRMRV3GrammarFilter) -> None:  # type: ignore[name-defined]
     _print_header("Standalone grammar corrections")
-    test_cases: List[str] = [
+    test_cases: list[str] = [
         "Thiss sentnce have two speling errrors.",
         "The crew was suppose to arrive yesteday evening.",
         "Irina said she dont wanna go to the market no more.",
         "Their going too fast for the narow bridge.",
-        "I has forgotten where I put the keys."  # Keep simple for deterministic output
+        "I has forgotten where I put the keys.",  # Keep simple for deterministic output
     ]
 
     for idx, text in enumerate(test_cases, start=1):
@@ -84,30 +86,24 @@ def _demo_sentences(filter_instance: GRMRV3GrammarFilter) -> None:  # type: igno
 def _demo_pipeline(filter_instance: GRMRV3GrammarFilter) -> None:  # type: ignore[name-defined]
     _print_header("Pipeline-style integration test")
     sample_data = {
-        'text_blocks': [
+        "text_blocks": [
+            {"content": "This block is mostly fine.", "metadata": {"type": "paragraph"}},
+            {"content": "This block contain a grammar mistake.", "metadata": {"type": "paragraph"}},
             {
-                'content': 'This block is mostly fine.',
-                'metadata': {'type': 'paragraph'}
+                "content": "Ther are multiple speling misteaks and punctuation problems here",
+                "metadata": {"type": "paragraph"},
             },
-            {
-                'content': 'This block contain a grammar mistake.',
-                'metadata': {'type': 'paragraph'}
-            },
-            {
-                'content': 'Ther are multiple speling misteaks and punctuation problems here',
-                'metadata': {'type': 'paragraph'}
-            }
         ]
     }
 
     print("Input data:")
-    for i, block in enumerate(sample_data['text_blocks']):
+    for i, block in enumerate(sample_data["text_blocks"]):
         print(f"  Block {i}: {block['content']}")
 
     result = filter_instance.process(sample_data)
 
     print("\nOutput data:")
-    for i, block in enumerate(result['text_blocks']):
+    for i, block in enumerate(result["text_blocks"]):
         print(f"  Block {i}: {block['content']}")
 
 

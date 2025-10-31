@@ -15,6 +15,7 @@ print(f"\nPython version: {sys.version}")
 # Check if torch is installed
 try:
     import torch
+
     print(f"\n✓ PyTorch installed: version {torch.__version__}")
 except ImportError:
     print("\n✗ PyTorch not installed!")
@@ -25,7 +26,7 @@ except ImportError:
 print(f"\nCUDA available in PyTorch: {torch.cuda.is_available()}")
 
 if torch.cuda.is_available():
-    print(f"✓ CUDA detected!")
+    print("✓ CUDA detected!")
     print(f"  CUDA version: {torch.version.cuda}")
     print(f"  Number of GPUs: {torch.cuda.device_count()}")
 
@@ -43,12 +44,12 @@ else:
     print("  4. PyTorch CUDA version doesn't match system CUDA")
 
 # Check PyTorch build info
-print(f"\nPyTorch build info:")
+print("\nPyTorch build info:")
 print(f"  Built with CUDA: {torch.version.cuda is not None}")
 if torch.version.cuda:
     print(f"  CUDA version: {torch.version.cuda}")
 else:
-    print(f"  ⚠ This is a CPU-only build!")
+    print("  ⚠ This is a CPU-only build!")
 
 # Check if NVIDIA GPU exists at system level
 print("\n" + "=" * 60)
@@ -57,7 +58,8 @@ print("=" * 60)
 
 try:
     import subprocess
-    result = subprocess.run(['nvidia-smi'], capture_output=True, text=True, timeout=5)
+
+    result = subprocess.run(["nvidia-smi"], capture_output=True, text=True, timeout=5)
     if result.returncode == 0:
         print("\n✓ nvidia-smi output:")
         print(result.stdout)
@@ -79,7 +81,9 @@ if not torch.cuda.is_available():
     print("   nvidia-smi")
     print("\n2. Reinstall PyTorch with CUDA support:")
     print("   pip uninstall torch torchvision torchaudio")
-    print("   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118")
+    print(
+        "   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118"
+    )
     print("\n   (cu118 = CUDA 11.8, use cu121 for CUDA 12.1, etc.)")
     print("\n3. Verify CUDA is detected:")
     print("   python check_cuda.py")

@@ -1,14 +1,13 @@
 import logging
 import threading
 from shutil import which
-from typing import Optional, Tuple
+from typing import Optional
 
 import language_tool_python
 
-
 _logger = logging.getLogger(__name__)
 _cache_lock = threading.Lock()
-_cached_tool: Optional[Tuple[object, str]] = None
+_cached_tool: Optional[tuple[object, str]] = None
 
 
 def is_java_available() -> bool:
@@ -56,9 +55,7 @@ def _build_language_tool(logger: Optional[logging.Logger] = None):
         return None, "disabled"
 
 
-def get_language_tool(
-    logger: Optional[logging.Logger] = None, force_refresh: bool = False
-):
+def get_language_tool(logger: Optional[logging.Logger] = None, force_refresh: bool = False):
     """Return a cached LanguageTool client and its backend identifier."""
 
     global _cached_tool

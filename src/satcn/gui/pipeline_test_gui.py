@@ -9,17 +9,16 @@ import sys
 import tempfile
 import threading
 import time
+import tkinter as tk
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from tkinter import filedialog, messagebox, ttk
+from typing import Optional
 
 import ebooklib  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
 from ebooklib import epub  # type: ignore
-import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
-
 
 SUPPORTED_EXTENSIONS = {".txt", ".md", ".epub"}
 WORDS_PER_PAGE = 300
@@ -34,7 +33,7 @@ class FileStats:
     word_count: int
     page_estimate: int
     modified_at: datetime
-    extra: Dict[str, str]
+    extra: dict[str, str]
 
     @property
     def size_human(self) -> str:
@@ -73,7 +72,7 @@ def collect_file_stats(path: Path) -> FileStats:
     size_bytes = path.stat().st_size
     modified_at = datetime.fromtimestamp(path.stat().st_mtime)
 
-    extra: Dict[str, str] = {}
+    extra: dict[str, str] = {}
     if word_count:
         # NOTE: This shows base estimate only. Actual time depends on filters selected.
         seconds = max(1, int(word_count / WORDS_PER_SECOND))
@@ -108,12 +107,12 @@ class PipelineTestGUI:
         self._build_layout()
 
         self.stats: Optional[FileStats] = None
-        self.output_queue: "queue.Queue[tuple[str, str]]" = queue.Queue()
+        self.output_queue: queue.Queue[tuple[str, str]] = queue.Queue()
         self.process_thread: Optional[threading.Thread] = None
         self.current_process: Optional[subprocess.Popen[str]] = None
         self.cancel_event = threading.Event()
-        self.log_buffer: List[str] = []
-        self.run_records: List[Dict[str, object]] = []
+        self.log_buffer: list[str] = []
+        self.run_records: list[dict[str, object]] = []
         self._current_run_start_perf: Optional[float] = None
         self._current_run_start_time: Optional[datetime] = None
         self._current_estimated_seconds: Optional[int] = None
@@ -175,7 +174,9 @@ class PipelineTestGUI:
         self.run_button = ttk.Button(controls_frame, text="Run pipeline", command=self.run_pipeline)
         self.run_button.pack(side="left")
 
-        self.cancel_button = ttk.Button(controls_frame, text="Cancel", command=self.cancel_pipeline, state="disabled")
+        self.cancel_button = ttk.Button(
+            controls_frame, text="Cancel", command=self.cancel_pipeline, state="disabled"
+        )
         self.cancel_button.pack(side="left", padx=(12, 0))
 
         status_frame = ttk.LabelFrame(self.root, text="Pipeline output")
@@ -244,7 +245,9 @@ class PipelineTestGUI:
 
     def run_pipeline(self) -> None:
         if self.process_thread and self.process_thread.is_alive():
-            messagebox.showwarning("Pipeline running", "Please wait for the current run to finish or cancel it.")
+            messagebox.showwarning(
+                "Pipeline running", "Please wait for the current run to finish or cancel it."
+            )
             return
 
         filepath = self.file_path_var.get()
@@ -280,7 +283,12 @@ class PipelineTestGUI:
 
         self.process_thread = threading.Thread(
             target=self._execute_pipeline,
-            args=(path, self._current_run_start_perf, self._current_run_start_time, estimated_seconds),
+            args=(
+                path,
+                self._current_run_start_perf,
+                self._current_run_start_time,
+                estimated_seconds,
+            ),
             daemon=True,
         )
         self.process_thread.start()
@@ -360,7 +368,9 @@ class PipelineTestGUI:
                 if txt_mode:
                     expected = input_path.with_name(f"{input_path.stem}_corrected.md")
                     if expected.exists():
-                        destination = original_path.with_name(f"{original_path.stem}_corrected{original_path.suffix}")
+                        destination = original_path.with_name(
+                            f"{original_path.stem}_corrected{original_path.suffix}"
+                        )
                         shutil.move(str(expected), str(destination))
                         output_path = destination
                 else:
@@ -393,8 +403,12 @@ class PipelineTestGUI:
         actual_seconds: Optional[float] = None
         if start_perf is not None and end_perf is not None:
             actual_seconds = end_perf - start_perf
-            estimate_text = f" (estimated ~{estimated_seconds} seconds)" if estimated_seconds else ""
-            self.output_queue.put(("log", f"Run duration: {actual_seconds:.1f} seconds{estimate_text}\n"))
+            estimate_text = (
+                f" (estimated ~{estimated_seconds} seconds)" if estimated_seconds else ""
+            )
+            self.output_queue.put(
+                ("log", f"Run duration: {actual_seconds:.1f} seconds{estimate_text}\n")
+            )
 
         if start_time is not None:
             record = {
@@ -456,8 +470,8 @@ class PipelineTestGUI:
         log_dir.mkdir(parents=True, exist_ok=True)
         log_path = log_dir / f"pipeline_gui_{timestamp:%Y%m%d_%H%M%S}.log"
 
-        lines: List[str] = []
-        lines.append(f"SATCN Pipeline Test Utility log")
+        lines: list[str] = []
+        lines.append("SATCN Pipeline Test Utility log")
         lines.append(f"Session closed at: {timestamp.isoformat()}\n")
 
         if self.run_records:

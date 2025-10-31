@@ -3,6 +3,7 @@ import time
 
 from satcn.core.utils.language_tool_utils import get_language_tool
 
+
 class GrammarCorrectionFilterSafe:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ class GrammarCorrectionFilterSafe:
         """
         A minimal parity check for Markdown symbols.
         """
-        for symbol in ['[', ']', '(', ')', '`']:
+        for symbol in ["[", "]", "(", ")", "`"]:
             if original_text.count(symbol) != corrected_text.count(symbol):
                 return False
         return True
@@ -65,8 +66,11 @@ class GrammarCorrectionFilterSafe:
         Applies safe grammar corrections to a single string.
         """
         stats = {
-            "typos_fixed": 0, "punctuation_fixed": 0, "spacing_fixed": 0,
-            "casing_fixed": 0, "simple_agreement_fixed": 0
+            "typos_fixed": 0,
+            "punctuation_fixed": 0,
+            "spacing_fixed": 0,
+            "casing_fixed": 0,
+            "simple_agreement_fixed": 0,
         }
 
         if not self.tool:
@@ -78,7 +82,7 @@ class GrammarCorrectionFilterSafe:
 
         try:
             matches = self._check_with_retry(text)
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "LanguageTool check failed after retries.",
                 exc_info=True,
@@ -120,21 +124,24 @@ class GrammarCorrectionFilterSafe:
         """
         Processes text blocks from the data dictionary, applying safe grammar corrections.
         """
-        if 'text_blocks' not in data:
+        if "text_blocks" not in data:
             return data, {}
 
         total_stats = {
-            "typos_fixed": 0, "punctuation_fixed": 0, "spacing_fixed": 0,
-            "casing_fixed": 0, "simple_agreement_fixed": 0
+            "typos_fixed": 0,
+            "punctuation_fixed": 0,
+            "spacing_fixed": 0,
+            "casing_fixed": 0,
+            "simple_agreement_fixed": 0,
         }
 
-        for block in data.get('text_blocks', []):
-            original_content = block.get('content', '')
+        for block in data.get("text_blocks", []):
+            original_content = block.get("content", "")
             if not original_content:
                 continue
 
             corrected_content, block_stats = self._process_text(original_content)
-            block['content'] = corrected_content
+            block["content"] = corrected_content
 
             for key in total_stats:
                 total_stats[key] += block_stats.get(key, 0)

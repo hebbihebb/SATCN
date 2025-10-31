@@ -76,7 +76,7 @@ for temp in 0.1 0.3 0.5 0.7 0.9; do
 done
 ```
 
-**Expected:** 
+**Expected:**
 - 0.1: Very consistent, deterministic
 - 0.7: Optimal quality (per model card)
 - 0.9: More creative but potentially less accurate

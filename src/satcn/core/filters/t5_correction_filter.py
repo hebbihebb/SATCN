@@ -7,8 +7,6 @@ with the Pipes & Filters architecture.
 """
 
 import logging
-import sys
-from pathlib import Path
 
 from satcn.correction.t5_corrector import T5Corrector
 
@@ -27,12 +25,7 @@ class T5CorrectionFilter:
     """
 
     def __init__(
-        self,
-        model_name=None,
-        device=None,
-        max_length=512,
-        num_beams=4,
-        use_half_precision=True
+        self, model_name=None, device=None, max_length=512, num_beams=4, use_half_precision=True
     ):
         """
         Initialize the T5 correction filter.
@@ -54,7 +47,7 @@ class T5CorrectionFilter:
             max_length=max_length,
             num_beams=num_beams,
             use_half_precision=use_half_precision,
-            logger=self.logger
+            logger=self.logger,
         )
 
         self.logger.info("T5 correction filter ready")
@@ -81,7 +74,7 @@ class T5CorrectionFilter:
         stats_dict = {
             "corrections_made": stats["corrections_made"],
             "texts_processed": stats["texts_processed"],
-            "errors": stats["errors"]
+            "errors": stats["errors"],
         }
 
         return data, stats_dict

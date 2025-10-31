@@ -1,13 +1,13 @@
 # tests/unit/test_t5_grammar_filter.py
 
+
 import pytest
-import sys
-import os
 
 # Attempt to import T5 dependencies
 try:
     import torch
-    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
@@ -19,25 +19,15 @@ from satcn.core.filters.t5_grammar_filter import T5GrammarFilter
 def sample_data():
     """Sample pipeline data structure."""
     return {
-        'text_blocks': [
-            {
-                'content': 'This is correct text.',
-                'metadata': {'type': 'paragraph'}
-            },
-            {
-                'content': 'This sentence have an error.',
-                'metadata': {'type': 'paragraph'}
-            },
-            {
-                'content': 'Ther are speling misteaks.',
-                'metadata': {'type': 'paragraph'}
-            }
+        "text_blocks": [
+            {"content": "This is correct text.", "metadata": {"type": "paragraph"}},
+            {"content": "This sentence have an error.", "metadata": {"type": "paragraph"}},
+            {"content": "Ther are speling misteaks.", "metadata": {"type": "paragraph"}},
         ]
     }
 
 
-@pytest.mark.skipif(not TRANSFORMERS_AVAILABLE,
-                   reason="Transformers and torch not installed")
+@pytest.mark.skipif(not TRANSFORMERS_AVAILABLE, reason="Transformers and torch not installed")
 class TestT5GrammarFilter:
     """Tests for T5GrammarFilter."""
 
@@ -46,9 +36,7 @@ class TestT5GrammarFilter:
         # Note: This will download the model on first run (~3GB)
         # In a real test environment, you'd want to use a smaller model
         # or mock the model loading
-        filter_instance = T5GrammarFilter(
-            model_name="pszemraj/flan-t5-large-grammar-synthesis"
-        )
+        filter_instance = T5GrammarFilter(model_name="pszemraj/flan-t5-large-grammar-synthesis")
         assert filter_instance is not None
         assert filter_instance.tokenizer is not None
         assert filter_instance.model is not None
@@ -81,20 +69,20 @@ class TestT5GrammarFilter:
         result = filter_instance.process(sample_data)
 
         # Check that data structure is preserved
-        assert 'text_blocks' in result
-        assert len(result['text_blocks']) == 3
+        assert "text_blocks" in result
+        assert len(result["text_blocks"]) == 3
 
         # Check that metadata is preserved
-        for block in result['text_blocks']:
-            assert 'content' in block
-            assert 'metadata' in block
-            assert 'type' in block['metadata']
+        for block in result["text_blocks"]:
+            assert "content" in block
+            assert "metadata" in block
+            assert "type" in block["metadata"]
 
     def test_process_no_text_blocks(self):
         """Test handling of data without text_blocks."""
         filter_instance = T5GrammarFilter()
 
-        data = {'some_other_key': 'value'}
+        data = {"some_other_key": "value"}
         result = filter_instance.process(data)
 
         assert result == data
@@ -113,8 +101,7 @@ class TestT5GrammarFilter:
         assert filter_instance.device == "cpu"
 
 
-@pytest.mark.skipif(TRANSFORMERS_AVAILABLE,
-                   reason="Test only when dependencies are missing")
+@pytest.mark.skipif(TRANSFORMERS_AVAILABLE, reason="Test only when dependencies are missing")
 def test_missing_dependencies():
     """Test that appropriate error is raised when dependencies are missing."""
     with pytest.raises(Exception):
@@ -123,8 +110,7 @@ def test_missing_dependencies():
 
 # Performance benchmarks (optional, run manually)
 @pytest.mark.benchmark
-@pytest.mark.skipif(not TRANSFORMERS_AVAILABLE,
-                   reason="Transformers not installed")
+@pytest.mark.skipif(not TRANSFORMERS_AVAILABLE, reason="Transformers not installed")
 def test_t5_performance_benchmark(benchmark):
     """Benchmark the T5 filter performance."""
     filter_instance = T5GrammarFilter()
@@ -134,5 +120,5 @@ def test_t5_performance_benchmark(benchmark):
     assert len(result) > 0
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

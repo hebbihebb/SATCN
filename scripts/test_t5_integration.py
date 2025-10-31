@@ -6,13 +6,14 @@ This script demonstrates how the T5GrammarFilter works both standalone and
 within the existing pipeline architecture.
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pipeline.filters.t5_grammar_filter import T5GrammarFilter
+
 
 def test_standalone():
     """Test the T5 filter with direct text input."""
@@ -25,9 +26,7 @@ def test_standalone():
     print("   (This may take a while on first run - downloading ~3GB model)")
 
     try:
-        t5_filter = T5GrammarFilter(
-            model_name="pszemraj/flan-t5-large-grammar-synthesis"
-        )
+        t5_filter = T5GrammarFilter(model_name="pszemraj/flan-t5-large-grammar-synthesis")
     except Exception as e:
         print(f"\n❌ Failed to load model: {e}")
         print("\nNote: Make sure you have transformers and torch installed:")
@@ -42,7 +41,7 @@ def test_standalone():
         "The cat are sleeping on the couch.",
         "I has three apples and two orange.",
         "She don't likes to running in the park.",
-        "Their going to they're house over there."
+        "Their going to they're house over there.",
     ]
 
     print("2. Testing grammar/spelling corrections:\n")
@@ -55,6 +54,7 @@ def test_standalone():
         print()
 
     return True
+
 
 def test_pipeline_integration():
     """Test the T5 filter within the pipeline data structure."""
@@ -72,34 +72,29 @@ def test_pipeline_integration():
 
     # Simulate pipeline data structure
     test_data = {
-        'text_blocks': [
+        "text_blocks": [
             {
-                'content': 'This is a test sentence with no errors.',
-                'metadata': {'type': 'paragraph'}
+                "content": "This is a test sentence with no errors.",
+                "metadata": {"type": "paragraph"},
             },
-            {
-                'content': 'This sentence have a grammar error.',
-                'metadata': {'type': 'paragraph'}
-            },
-            {
-                'content': 'Ther are many speling misteaks here.',
-                'metadata': {'type': 'paragraph'}
-            }
+            {"content": "This sentence have a grammar error.", "metadata": {"type": "paragraph"}},
+            {"content": "Ther are many speling misteaks here.", "metadata": {"type": "paragraph"}},
         ]
     }
 
     print("Input data:")
-    for i, block in enumerate(test_data['text_blocks']):
+    for i, block in enumerate(test_data["text_blocks"]):
         print(f"  Block {i}: {block['content']}")
 
     # Process through filter
     result = t5_filter.process(test_data)
 
     print("\nOutput data:")
-    for i, block in enumerate(result['text_blocks']):
+    for i, block in enumerate(result["text_blocks"]):
         print(f"  Block {i}: {block['content']}")
 
     return True
+
 
 def show_integration_guide():
     """Display integration guide."""
@@ -164,6 +159,7 @@ To integrate T5GrammarFilter into your pipeline:
 """
     print(guide)
 
+
 def main():
     """Main test runner."""
     print("\n" + "=" * 60)
@@ -191,6 +187,7 @@ def main():
     print("  4. Test with real documents: python -m pipeline.pipeline_runner <file.md>")
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

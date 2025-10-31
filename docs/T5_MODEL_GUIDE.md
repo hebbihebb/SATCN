@@ -85,7 +85,7 @@ export SATCN_T5_MODEL="vennify/t5-base-grammar-correction"
 ## Model Testing Results (October 2025)
 
 ### pszemraj/flan-t5-large-grammar-synthesis (DEFAULT)
-- **Grade:** C/C+ 
+- **Grade:** C/C+
 - **Changes names:** Yes (Irina → Veronica, etc.)
 - **Preserves meaning:** Mostly (some drift)
 - **Grammar fixes:** Good
@@ -141,7 +141,7 @@ python -m pipeline.pipeline_runner your_test_file.md --use-t5 --t5-mode replace
 
 Compare output carefully for:
 1. Name preservation
-2. Meaning preservation  
+2. Meaning preservation
 3. Grammar improvements
 4. Spelling improvements
 5. Processing speed

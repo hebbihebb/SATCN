@@ -125,7 +125,7 @@ pip install -r requirements-grmr.txt
 **Achievements:**
 - 100% test accuracy (51 tests passing)
 - Character name preservation: Perfect
-- Slang preservation: Perfect  
+- Slang preservation: Perfect
 - CPU performance: 0.73s/sentence (acceptable for batch processing)
 - Clean architecture
 - Comprehensive documentation
@@ -150,7 +150,7 @@ pip install -r requirements-grmr.txt
 **CPU Performance (current):**
 - Single sentence: 0.73s
 - 100 sentences: ~73s (~1.2 minutes)
-- 1000 sentences: ~12 minutes  
+- 1000 sentences: ~12 minutes
 - Typical novel chapter (3000 words, ~150 sentences): ~2 minutes
 
 **GPU Performance (projected with Python 3.11):**
@@ -163,7 +163,7 @@ pip install -r requirements-grmr.txt
 
 ---
 
-**Status:** GRMR-V3 integration COMPLETE ✅  
-**Production Ready:** YES ✅  
-**GPU Acceleration:** Postponed (Python 3.13 limitation)  
+**Status:** GRMR-V3 integration COMPLETE ✅
+**Production Ready:** YES ✅
+**GPU Acceleration:** Postponed (Python 3.13 limitation)
 **Recommendation:** Ship with CPU, plan GPU for future Python 3.11 migration

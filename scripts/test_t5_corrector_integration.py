@@ -25,8 +25,8 @@ Usage:
     python test_t5_corrector_integration.py --skip-model
 """
 
-import sys
 import argparse
+import sys
 import time
 from pathlib import Path
 
@@ -48,9 +48,9 @@ def print_result(label, original, corrected):
     print(f"  Original:  {original}")
     print(f"  Corrected: {corrected}")
     if original != corrected:
-        print(f"  ✓ Modified")
+        print("  ✓ Modified")
     else:
-        print(f"  - No change")
+        print("  - No change")
     print()
 
 
@@ -120,7 +120,7 @@ def test_batch_processing():
     duration = time.time() - start
 
     print()
-    for i, (original, corrected) in enumerate(zip(texts, corrected_texts), 1):
+    for i, (original, corrected) in enumerate(zip(texts, corrected_texts, strict=False), 1):
         print_result(f"Text {i}", original, corrected)
 
     print(f"Batch processed in {duration:.2f} seconds")
@@ -132,9 +132,10 @@ def test_pipeline_integration(test_file=None):
     """Test pipeline integration."""
     print_header("Test 3: Pipeline Integration")
 
-    from pipeline.pipeline_runner import PipelineRunner
-    import tempfile
     import os
+    import tempfile
+
+    from pipeline.pipeline_runner import PipelineRunner
 
     # Create or use test file
     if test_file is None:
@@ -151,8 +152,8 @@ The team are working on they're project. Its going very well.
 
 We wants to make sure everything work correctly.
 """
-        fd, test_file = tempfile.mkstemp(suffix='.md', text=True)
-        with os.fdopen(fd, 'w') as f:
+        fd, test_file = tempfile.mkstemp(suffix=".md", text=True)
+        with os.fdopen(fd, "w") as f:
             f.write(test_content)
         temp_file = True
     else:
@@ -169,23 +170,19 @@ We wants to make sure everything work correctly.
         print("-" * 70)
 
         try:
-            pipeline = PipelineRunner(
-                test_file,
-                use_t5=True,
-                t5_mode=mode
-            )
+            pipeline = PipelineRunner(test_file, use_t5=True, t5_mode=mode)
 
             start = time.time()
             result = pipeline.run()
             duration = time.time() - start
 
-            if result and 'output_filepath' in result:
+            if result and "output_filepath" in result:
                 print(f"✓ Pipeline completed in {duration:.2f} seconds")
                 print(f"  Output: {result['output_filepath']}")
 
                 # Clean up output file
-                if os.path.exists(result['output_filepath']):
-                    os.remove(result['output_filepath'])
+                if os.path.exists(result["output_filepath"]):
+                    os.remove(result["output_filepath"])
             else:
                 print("✗ Pipeline failed")
 
@@ -240,8 +237,9 @@ def benchmark_performance():
     """Benchmark T5 corrector performance."""
     print_header("Performance Benchmark")
 
-    from satcn.correction import T5Corrector
     import statistics
+
+    from satcn.correction import T5Corrector
 
     corrector = T5Corrector()
 
@@ -276,6 +274,7 @@ def check_environment():
     # Check for torch
     try:
         import torch
+
         print(f"PyTorch version: {torch.__version__}")
         print(f"CUDA available: {torch.cuda.is_available()}")
         if torch.cuda.is_available():
@@ -288,6 +287,7 @@ def check_environment():
     # Check for transformers
     try:
         import transformers
+
         print(f"Transformers version: {transformers.__version__}")
     except ImportError:
         print("✗ Transformers not installed")
@@ -296,6 +296,7 @@ def check_environment():
     # Check for satcn.correction
     try:
         from satcn.correction import T5Corrector
+
         print("✓ satcn.correction module found")
     except ImportError as e:
         print(f"✗ satcn.correction import failed: {e}")
@@ -309,28 +310,18 @@ def main():
     """Main test runner."""
     parser = argparse.ArgumentParser(
         description="Test T5Corrector integration",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        '--skip-model',
-        action='store_true',
-        help='Skip model loading (quick environment check only)'
+        "--skip-model",
+        action="store_true",
+        help="Skip model loading (quick environment check only)",
     )
     parser.add_argument(
-        '--pipeline',
-        action='store_true',
-        help='Include pipeline integration tests'
+        "--pipeline", action="store_true", help="Include pipeline integration tests"
     )
-    parser.add_argument(
-        '--file',
-        type=str,
-        help='Test file for pipeline integration'
-    )
-    parser.add_argument(
-        '--benchmark',
-        action='store_true',
-        help='Run performance benchmark'
-    )
+    parser.add_argument("--file", type=str, help="Test file for pipeline integration")
+    parser.add_argument("--benchmark", action="store_true", help="Run performance benchmark")
 
     args = parser.parse_args()
 
@@ -389,6 +380,7 @@ def main():
     except Exception as e:
         print(f"\n✗ Test failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

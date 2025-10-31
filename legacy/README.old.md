@@ -162,15 +162,15 @@ Input File → Parser → [Correction Filters] → TTS Normalizer → Output Gen
 
 
 
-✅ **Separation of concerns** - Each filter has one job  ✅ **Separation of concerns** - Each filter has one job  
+✅ **Separation of concerns** - Each filter has one job  ✅ **Separation of concerns** - Each filter has one job
 
-✅ **Metadata preservation** - Formatting survives correction  ✅ **Metadata preservation** - Formatting survives correction  
+✅ **Metadata preservation** - Formatting survives correction  ✅ **Metadata preservation** - Formatting survives correction
 
-✅ **Mode flexibility** - Swap filters at runtime (`--use-grmr`, `--use-t5`)  ✅ **Mode flexibility** - Swap filters at runtime (`--use-grmr`, `--use-t5`)  
+✅ **Mode flexibility** - Swap filters at runtime (`--use-grmr`, `--use-t5`)  ✅ **Mode flexibility** - Swap filters at runtime (`--use-grmr`, `--use-t5`)
 
-✅ **Fail-fast support** - Stop on first error or continue  ✅ **Fail-fast support** - Stop on first error or continue  
+✅ **Fail-fast support** - Stop on first error or continue  ✅ **Fail-fast support** - Stop on first error or continue
 
-✅ **JSON logging** - Structured logs with per-filter statistics  ✅ **JSON logging** - Structured logs with per-filter statistics  
+✅ **JSON logging** - Structured logs with per-filter statistics  ✅ **JSON logging** - Structured logs with per-filter statistics
 
 
 
@@ -190,9 +190,9 @@ The project has explored three approaches to grammar correction:The project has 
 
 
 
-**Status:** ✅ Working, but slow  **Status:** ✅ Working, but slow  
+**Status:** ✅ Working, but slow  **Status:** ✅ Working, but slow
 
-**Implementation:** `GrammarCorrectionFilterSafe`  **Implementation:** `GrammarCorrectionFilterSafe`  
+**Implementation:** `GrammarCorrectionFilterSafe`  **Implementation:** `GrammarCorrectionFilterSafe`
 
 **Backend:** LanguageTool public API with conservative ruleset**Backend:** LanguageTool public API with conservative ruleset
 
@@ -226,9 +226,9 @@ The project has explored three approaches to grammar correction:The project has 
 
 
 
-**Status:** ⚠️ Experimental, memory-intensive  **Status:** ⚠️ Experimental, memory-intensive  
+**Status:** ⚠️ Experimental, memory-intensive  **Status:** ⚠️ Experimental, memory-intensive
 
-**Implementation:** `T5CorrectionFilter`  **Implementation:** `T5CorrectionFilter`  
+**Implementation:** `T5CorrectionFilter`  **Implementation:** `T5CorrectionFilter`
 
 **Model:** FLAN-T5 (Hugging Face)**Model:** FLAN-T5 (Hugging Face)
 
@@ -272,9 +272,9 @@ The project has explored three approaches to grammar correction:The project has 
 
 
 
-**Status:** ✅ Production-ready, GPU-accelerated  **Status:** ✅ Production-ready, GPU-accelerated  
+**Status:** ✅ Production-ready, GPU-accelerated  **Status:** ✅ Production-ready, GPU-accelerated
 
-**Implementation:** `GRMRV3GrammarFilter`  **Implementation:** `GRMRV3GrammarFilter`  
+**Implementation:** `GRMRV3GrammarFilter`  **Implementation:** `GRMRV3GrammarFilter`
 
 **Model:** GRMR-V3-Q4B (Qwen3 4B, 4-bit quantized, 2.5GB)**Model:** GRMR-V3-Q4B (Qwen3 4B, 4-bit quantized, 2.5GB)
 
@@ -354,19 +354,19 @@ python -m pipeline.pipeline_runner --use-grmr --grmr-mode hybrid input.epubpytho
 
 
 
-✅ **Pipes-and-Filters architecture** - Clean separation of concerns, easy to test  ✅ **Pipes-and-Filters architecture** - Clean separation of concerns, easy to test  
+✅ **Pipes-and-Filters architecture** - Clean separation of concerns, easy to test  ✅ **Pipes-and-Filters architecture** - Clean separation of concerns, easy to test
 
-✅ **GGUF quantized models** - Best balance of quality, speed, and memory  ✅ **GGUF quantized models** - Best balance of quality, speed, and memory  
+✅ **GGUF quantized models** - Best balance of quality, speed, and memory  ✅ **GGUF quantized models** - Best balance of quality, speed, and memory
 
-✅ **GPU acceleration** - 3.62x speedup makes batch processing practical  ✅ **GPU acceleration** - 3.62x speedup makes batch processing practical  
+✅ **GPU acceleration** - 3.62x speedup makes batch processing practical  ✅ **GPU acceleration** - 3.62x speedup makes batch processing practical
 
-✅ **Paragraph-level chunking** - Fits within context windows, preserves context  ✅ **Paragraph-level chunking** - Fits within context windows, preserves context  
+✅ **Paragraph-level chunking** - Fits within context windows, preserves context  ✅ **Paragraph-level chunking** - Fits within context windows, preserves context
 
-✅ **Deterministic parameters** - `temperature=0.1` ensures consistent output  ✅ **Deterministic parameters** - `temperature=0.1` ensures consistent output  
+✅ **Deterministic parameters** - `temperature=0.1` ensures consistent output  ✅ **Deterministic parameters** - `temperature=0.1` ensures consistent output
 
-✅ **Comprehensive testing** - Unit, integration, regression tests caught issues early  ✅ **Comprehensive testing** - Unit, integration, regression tests caught issues early  
+✅ **Comprehensive testing** - Unit, integration, regression tests caught issues early  ✅ **Comprehensive testing** - Unit, integration, regression tests caught issues early
 
-✅ **JSON logging** - Made debugging and optimization much easier  ✅ **JSON logging** - Made debugging and optimization much easier  
+✅ **JSON logging** - Made debugging and optimization much easier  ✅ **JSON logging** - Made debugging and optimization much easier
 
 
 
@@ -374,17 +374,17 @@ python -m pipeline.pipeline_runner --use-grmr --grmr-mode hybrid input.epubpytho
 
 
 
-❌ **JamSpell** - Never got it working reliably, abandoned  ❌ **JamSpell** - Never got it working reliably, abandoned  
+❌ **JamSpell** - Never got it working reliably, abandoned  ❌ **JamSpell** - Never got it working reliably, abandoned
 
-❌ **T5 GPU inference via GGUF** - Runtime crashes with T5 architecture  ❌ **T5 GPU inference via GGUF** - Runtime crashes with T5 architecture  
+❌ **T5 GPU inference via GGUF** - Runtime crashes with T5 architecture  ❌ **T5 GPU inference via GGUF** - Runtime crashes with T5 architecture
 
-❌ **Higher temperature** - `temperature=0.7` introduced grammar errors  ❌ **Higher temperature** - `temperature=0.7` introduced grammar errors  
+❌ **Higher temperature** - `temperature=0.7` introduced grammar errors  ❌ **Higher temperature** - `temperature=0.7` introduced grammar errors
 
-❌ **Deep Markdown nesting** - Parser/writer struggles with complex inline formatting  ❌ **Deep Markdown nesting** - Parser/writer struggles with complex inline formatting  
+❌ **Deep Markdown nesting** - Parser/writer struggles with complex inline formatting  ❌ **Deep Markdown nesting** - Parser/writer struggles with complex inline formatting
 
-❌ **EPUB full coverage** - Only handles `<p>` tags, skips headers/lists  ❌ **EPUB full coverage** - Only handles `<p>` tags, skips headers/lists  
+❌ **EPUB full coverage** - Only handles `<p>` tags, skips headers/lists  ❌ **EPUB full coverage** - Only handles `<p>` tags, skips headers/lists
 
-❌ **LanguageTool local JVM** - Too slow, switched to public API  ❌ **LanguageTool local JVM** - Too slow, switched to public API  
+❌ **LanguageTool local JVM** - Too slow, switched to public API  ❌ **LanguageTool local JVM** - Too slow, switched to public API
 
 
 
@@ -508,7 +508,7 @@ pip install llama-cpp-pythonpip install llama-cpp-python
 
 
 
-**Build script:** `install_llama_cpp_cuda.ps1`  **Build script:** `install_llama_cpp_cuda.ps1`  
+**Build script:** `install_llama_cpp_cuda.ps1`  **Build script:** `install_llama_cpp_cuda.ps1`
 
 **Setup guide:** `docs/GPU_SETUP_GUIDE.md`**Setup guide:** `docs/GPU_SETUP_GUIDE.md`
 
@@ -829,10 +829,10 @@ python tools\grmr_v3_test_gui.py
 
 ### 9.3 Not Planned
 
-❌ **Cloud/API integration** - Privacy-first, local-only by design  
-❌ **Real-time collaborative editing** - Batch processing focus  
-❌ **Mobile app** - Desktop/server workstation tool  
-❌ **JamSpell integration** - Never worked reliably, abandoned  
+❌ **Cloud/API integration** - Privacy-first, local-only by design
+❌ **Real-time collaborative editing** - Batch processing focus
+❌ **Mobile app** - Desktop/server workstation tool
+❌ **JamSpell integration** - Never worked reliably, abandoned
 
 ---
 

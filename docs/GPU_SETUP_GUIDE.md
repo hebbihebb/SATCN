@@ -6,10 +6,10 @@ This guide covers setting up GPU acceleration for llama-cpp-python to speed up g
 
 ## Status
 
-✅ **GPU compilation successful** - CUDA 13.0 build completed  
-✅ **GPU detection working** - NVIDIA GeForce RTX 4060 detected  
-⚠️ **Model compatibility** - T5 models have runtime issues with GPU inference  
-✅ **CPU performance** - Excellent baseline at 438 words/minute  
+✅ **GPU compilation successful** - CUDA 13.0 build completed
+✅ **GPU detection working** - NVIDIA GeForce RTX 4060 detected
+⚠️ **Model compatibility** - T5 models have runtime issues with GPU inference
+✅ **CPU performance** - Excellent baseline at 438 words/minute
 
 ## Requirements
 

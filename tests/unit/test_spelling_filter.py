@@ -1,5 +1,5 @@
-import pytest
 from satcn.core.filters.spelling_filter import SpellingCorrectionFilter
+
 
 def test_spelling_correction():
     """
@@ -7,12 +7,11 @@ def test_spelling_correction():
     """
     filtr = SpellingCorrectionFilter()
     data = {
-        'text_blocks': [
-            {'type': 'paragraph', 'content': 'This is a sentance with a misspelling.'}
-        ]
+        "text_blocks": [{"type": "paragraph", "content": "This is a sentance with a misspelling."}]
     }
     corrected_data = filtr.process(data)
-    assert corrected_data['text_blocks'][0]['content'] == 'This is a sentence with a misspelling.'
+    assert corrected_data["text_blocks"][0]["content"] == "This is a sentence with a misspelling."
+
 
 def test_no_correction_needed():
     """
@@ -20,12 +19,15 @@ def test_no_correction_needed():
     """
     filtr = SpellingCorrectionFilter()
     data = {
-        'text_blocks': [
-            {'type': 'paragraph', 'content': 'This is a sentence with correct spelling.'}
+        "text_blocks": [
+            {"type": "paragraph", "content": "This is a sentence with correct spelling."}
         ]
     }
     corrected_data = filtr.process(data)
-    assert corrected_data['text_blocks'][0]['content'] == 'This is a sentence with correct spelling.'
+    assert (
+        corrected_data["text_blocks"][0]["content"] == "This is a sentence with correct spelling."
+    )
+
 
 def test_spelling_correction_case_insensitive():
     """
@@ -33,9 +35,7 @@ def test_spelling_correction_case_insensitive():
     """
     filtr = SpellingCorrectionFilter()
     data = {
-        'text_blocks': [
-            {'type': 'paragraph', 'content': 'This is a Sentance with a misspelling.'}
-        ]
+        "text_blocks": [{"type": "paragraph", "content": "This is a Sentance with a misspelling."}]
     }
     corrected_data = filtr.process(data)
-    assert corrected_data['text_blocks'][0]['content'] == 'This is a sentence with a misspelling.'
+    assert corrected_data["text_blocks"][0]["content"] == "This is a sentence with a misspelling."

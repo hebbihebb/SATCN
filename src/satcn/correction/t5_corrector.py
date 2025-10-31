@@ -28,9 +28,10 @@ Example:
 """
 
 import logging
-from typing import List, Dict, Optional, Union, Tuple
+from typing import Optional, Union
+
 import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 
 class T5Corrector:
@@ -52,14 +53,14 @@ class T5Corrector:
     # Default model: FLAN-T5 large for grammar synthesis
     # Grade: C/C+ - changes names but good grammar fixes
     DEFAULT_MODEL = "pszemraj/flan-t5-large-grammar-synthesis"
-    
+
     # Alternative models (tested and not recommended)
     ALTERNATIVE_MODELS = {
         "ai-forever-spell": "ai-forever/T5-large-spell",  # Grade D+: introduces more errors than fixes
         "small-typo": "willwade/t5-small-spoken-typo",  # Untested - truncates too aggressively
         "general-correction": "rihebriri/t5-text-correction",  # Untested
     }
-    
+
     # Model-specific prefixes (some models require task prefixes)
     MODEL_PREFIXES = {
         "ai-forever/T5-large-spell": "grammar: ",  # Required but model still performs poorly
@@ -74,7 +75,7 @@ class T5Corrector:
         max_length: int = 512,
         num_beams: int = 2,  # Reduced from 4 for faster, less creative corrections
         use_half_precision: bool = True,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize the T5 corrector.
@@ -100,7 +101,7 @@ class T5Corrector:
         self.max_length = max_length
         self.num_beams = num_beams
         self.use_half_precision = use_half_precision
-        
+
         # Get model-specific prefix if required
         self.prefix = self.MODEL_PREFIXES.get(self.model_name, "")
         if self.prefix:
@@ -113,11 +114,7 @@ class T5Corrector:
         self._load_model()
 
         # Statistics tracking
-        self.stats = {
-            "corrections_made": 0,
-            "texts_processed": 0,
-            "errors": 0
-        }
+        self.stats = {"corrections_made": 0, "texts_processed": 0, "errors": 0}
 
     def _detect_device(self, device: Optional[str]) -> str:
         """
@@ -138,7 +135,7 @@ class T5Corrector:
             return "cuda"
 
         # Check for Apple Silicon MPS
-        if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             self.logger.info("Apple Silicon MPS detected")
             return "mps"
 
@@ -163,8 +160,7 @@ class T5Corrector:
 
             # Load tokenizer
             self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
-                model_max_length=self.max_length
+                self.model_name, model_max_length=self.max_length
             )
 
             # Determine dtype based on device and half precision setting
@@ -181,10 +177,7 @@ class T5Corrector:
             }
 
             # Load model directly - device_map="auto" is too slow for single GPU
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(
-                self.model_name,
-                **load_kwargs
-            )
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name, **load_kwargs)
 
             # Move model to device
             self.model = self.model.to(self.device)
@@ -202,7 +195,7 @@ class T5Corrector:
             self.logger.error(f"Failed to load T5 model: {e}", exc_info=True)
             raise RuntimeError(f"Could not load T5 model '{self.model_name}': {e}") from e
 
-    def correct(self, text: str, return_confidence: bool = False) -> Union[str, Tuple[str, float]]:
+    def correct(self, text: str, return_confidence: bool = False) -> Union[str, tuple[str, float]]:
         """
         Correct a single text string.
 
@@ -233,18 +226,18 @@ class T5Corrector:
         try:
             # Add model-specific prefix if required
             input_text = self.prefix + text if self.prefix else text
-            
+
             # Tokenize
             inputs = self.tokenizer(
                 input_text,
                 return_tensors="pt",
                 max_length=self.max_length,
                 truncation=True,
-                padding=False
+                padding=False,
             )
-            
+
             # Check for truncation
-            input_length = inputs['input_ids'].shape[1]
+            input_length = inputs["input_ids"].shape[1]
             if input_length >= self.max_length:
                 self.logger.warning(
                     f"Text was truncated to {self.max_length} tokens. "
@@ -269,10 +262,7 @@ class T5Corrector:
                 )
 
             # Decode
-            corrected = self.tokenizer.decode(
-                outputs[0],
-                skip_special_tokens=True
-            )
+            corrected = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
             # Update statistics
             self.stats["texts_processed"] += 1
@@ -296,11 +286,7 @@ class T5Corrector:
                 return text, 0.0
             return text
 
-    def correct_batch(
-        self,
-        texts: List[str],
-        show_progress: bool = False
-    ) -> List[str]:
+    def correct_batch(self, texts: list[str], show_progress: bool = False) -> list[str]:
         """
         Correct multiple texts.
 
@@ -330,7 +316,7 @@ class T5Corrector:
 
         return corrected_texts
 
-    def process(self, data: Dict) -> Dict:
+    def process(self, data: dict) -> dict:
         """
         Process pipeline data (for integration with SATCN pipeline).
 
@@ -354,18 +340,18 @@ class T5Corrector:
             ... }
             >>> corrector.process(data)
         """
-        if 'text_blocks' not in data:
+        if "text_blocks" not in data:
             self.logger.warning("No 'text_blocks' found in pipeline data")
             return data
 
         corrections_made = 0
         blocks_processed = 0
-        total_blocks = len(data['text_blocks'])
-        
+        total_blocks = len(data["text_blocks"])
+
         self.logger.info(f"Processing {total_blocks} text blocks with T5 model...")
 
-        for i, block in enumerate(data['text_blocks']):
-            original_content = block.get('content', '')
+        for i, block in enumerate(data["text_blocks"]):
+            original_content = block.get("content", "")
 
             # Skip empty blocks
             if not original_content or not original_content.strip():
@@ -383,14 +369,14 @@ class T5Corrector:
 
             # Update block if changed
             if corrected_content != original_content:
-                block['content'] = corrected_content
+                block["content"] = corrected_content
                 corrections_made += 1
 
                 # Calculate change metrics
                 orig_words = len(original_content.split())
                 corr_words = len(corrected_content.split())
                 word_diff = corr_words - orig_words
-                
+
                 self.logger.info(
                     f"Block {i+1}: Corrected "
                     f"(word count: {orig_words} -> {corr_words}, diff: {word_diff:+d})"
@@ -398,14 +384,10 @@ class T5Corrector:
 
                 # Log changes (truncated for readability)
                 if self.logger.isEnabledFor(logging.DEBUG):
-                    orig_preview = original_content[:80].replace('\n', ' ')
-                    corr_preview = corrected_content[:80].replace('\n', ' ')
-                    self.logger.debug(
-                        f"Block {i+1} BEFORE: '{orig_preview}...'"
-                    )
-                    self.logger.debug(
-                        f"Block {i+1} AFTER:  '{corr_preview}...'"
-                    )
+                    orig_preview = original_content[:80].replace("\n", " ")
+                    corr_preview = corrected_content[:80].replace("\n", " ")
+                    self.logger.debug(f"Block {i+1} BEFORE: '{orig_preview}...'")
+                    self.logger.debug(f"Block {i+1} AFTER:  '{corr_preview}...'")
             else:
                 self.logger.info(f"Block {i+1}: No changes needed")
 
@@ -418,7 +400,7 @@ class T5Corrector:
 
         return data
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """
         Get correction statistics.
 
@@ -432,21 +414,14 @@ class T5Corrector:
 
     def reset_stats(self):
         """Reset correction statistics to zero."""
-        self.stats = {
-            "corrections_made": 0,
-            "texts_processed": 0,
-            "errors": 0
-        }
+        self.stats = {"corrections_made": 0, "texts_processed": 0, "errors": 0}
 
     @classmethod
-    def list_models(cls) -> Dict[str, str]:
+    def list_models(cls) -> dict[str, str]:
         """
         List available alternative T5 models.
 
         Returns:
             Dictionary mapping model nicknames to Hugging Face model IDs
         """
-        return {
-            "default": cls.DEFAULT_MODEL,
-            **cls.ALTERNATIVE_MODELS
-        }
+        return {"default": cls.DEFAULT_MODEL, **cls.ALTERNATIVE_MODELS}

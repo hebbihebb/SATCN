@@ -1,6 +1,7 @@
 import pytest
-import os
-from satcn.core.filters.markdown_parser import MarkdownParserFilter, MarkdownOutputGenerator
+
+from satcn.core.filters.markdown_parser import MarkdownOutputGenerator, MarkdownParserFilter
+
 
 @pytest.fixture
 def markdown_file(tmp_path):
@@ -16,7 +17,10 @@ This is a paragraph with some *italic* and **bold** text.
     file_path.write_text(content)
     return str(file_path)
 
-@pytest.mark.xfail(reason="Nested inline formatting currently causes duplicated text during serialization")
+
+@pytest.mark.xfail(
+    reason="Nested inline formatting currently causes duplicated text during serialization"
+)
 def test_markdown_round_trip(markdown_file):
     """
     Tests that parsing a markdown file and then immediately generating it
@@ -32,13 +36,17 @@ def test_markdown_round_trip(markdown_file):
     generated_data = generator.process(parsed_data)
 
     # Read the content of the original and generated files
-    with open(markdown_file, 'r', encoding='utf-8') as f:
+    with open(markdown_file, encoding="utf-8") as f:
         original_content = f.read()
 
-    with open(generated_data['output_filepath'], 'r', encoding='utf-8') as f:
+    with open(generated_data["output_filepath"], encoding="utf-8") as f:
         generated_content = f.read()
 
     # Compare the files line by line, ignoring leading/trailing whitespace and blank lines.
-    original_lines = [line.strip() for line in original_content.strip().splitlines() if line.strip()]
-    generated_lines = [line.strip() for line in generated_content.strip().splitlines() if line.strip()]
+    original_lines = [
+        line.strip() for line in original_content.strip().splitlines() if line.strip()
+    ]
+    generated_lines = [
+        line.strip() for line in generated_content.strip().splitlines() if line.strip()
+    ]
     assert original_lines == generated_lines

@@ -11,7 +11,7 @@
 
 **The pre-built wheel repository does NOT have a wheel for:**
 - Python 3.11
-- CUDA 12.1  
+- CUDA 12.1
 - Windows x64
 
 Even with Python 3.11, we would still need to **build from source**, which requires:

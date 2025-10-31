@@ -64,7 +64,9 @@ def main():
             grmr_mode=args.grmr_mode,
         )
         runner.run()
-        print(f"\n✅ Processing complete! Check output file: {input_path.stem}_corrected{input_path.suffix}")
+        print(
+            f"\n✅ Processing complete! Check output file: {input_path.stem}_corrected{input_path.suffix}"
+        )
         return 0
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

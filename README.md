@@ -174,5 +174,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Repository:** https://github.com/hebbihebb/SATCN  
+**Repository:** https://github.com/hebbihebb/SATCN
 **Issues:** https://github.com/hebbihebb/SATCN/issues
