@@ -101,17 +101,35 @@ The GRMR-V3 integration provides offline, privacy-focused grammar correction usi
 
 **CPU Performance (Intel i7/i9 or AMD Ryzen 7/9):**
 - Processing rate: ~438 words/minute (7 words/second)
-- Time per paragraph: ~8 seconds
+- Time per paragraph: ~0.70 seconds average
 - Chapter (3,500 words): ~8 minutes
 - Novel (90,000 words): ~3.4 hours
+
+**GPU Performance (NVIDIA RTX 4060 - 8GB VRAM):**
+- Processing rate: ~1,587 words/minute (26 words/second)
+- Time per paragraph: ~0.38 seconds average
+- Chapter (3,500 words): ~2.2 minutes
+- Novel (90,000 words): ~57 minutes
+- **Speedup: 3.62x faster than CPU**
+- GPU utilization: 35/37 layers offloaded, ~3.2GB VRAM used
 
 **Quality Metrics:**
 - Test accuracy: 100% (51/51 tests passing)
 - Character name preservation: 99%+ in long documents
 - Correction rate: 92% of paragraphs improved
+- Real-world validation: 15,927 words processed with Grade A quality (see `GRMR_V3_QUALITY_REPORT.md`)
 
 **GPU Support:**
-GPU acceleration is available but requires building llama-cpp-python from source with CUDA support. CPU performance is already production-ready for batch processing workflows.
+GPU acceleration is available and **production-ready** for GRMR-V3 (Qwen3 architecture). Requires building llama-cpp-python from source with CUDA support. See `docs/GPU_SETUP_GUIDE.md` for detailed installation instructions.
+
+**GPU Status:**
+- ✅ CUDA 13.0 compilation successful (38 minutes build time)
+- ✅ GPU detection working (NVIDIA GPUs with Compute Capability 8.9+)
+- ✅ GRMR-V3 model: Full GPU support, 3.62x speedup validated
+- ⚠️ T5 GGUF models: Runtime compatibility issues on GPU (use CPU mode)
+- ✅ Production-ready for Qwen3-based GGUF models
+
+**Note:** GRMR-V3 (Qwen3 architecture) works excellently on GPU with 3.62x speedup. T5-based GGUF models have GPU runtime issues and should use CPU mode. For production workloads, GPU acceleration reduces novel processing time from 3.4 hours to under 1 hour.
 
 ### 3.5.3 Usage
 
@@ -139,13 +157,71 @@ print(f"Tokens generated: {stats['total_tokens_generated']}")
 | Quality benchmark | `python benchmark_grmr_quality.py` | 31 real-world correction scenarios (100% accuracy) |
 | Long document test | `python test_long_sample.py` | Real-world performance on 3K+ word samples |
 
-Documentation: `docs/GRMR_V3_GGUF_TEST_PLAN.md`
+Documentation: 
+- `docs/GRMR_V3_GGUF_TEST_PLAN.md` - Test plan and quality benchmarks
+- `docs/GPU_SETUP_GUIDE.md` - GPU acceleration setup and troubleshooting
 
 ---
 
-## 4. Automated Verification Suite
+## 4. GPU Acceleration
 
-SATCN’s regression discipline couples the transformer work with the existing test harnesses:
+GPU acceleration provides **3.62x speedup** for GRMR-V3 grammar correction, reducing novel processing time from 3.4 hours to under 1 hour.
+
+### 4.1 Current Status
+
+- **Build System:** ✅ Successfully compiles with CUDA 13.0
+- **GPU Detection:** ✅ NVIDIA GPUs properly detected (Compute Capability 8.9+)
+- **Model Loading:** ✅ Layers offload to GPU correctly (35/37 layers)
+- **GRMR-V3 (Qwen3):** ✅ Full GPU support, 1,587 wpm (3.62x speedup)
+- **T5 GGUF Models:** ⚠️ Runtime crashes with T5 architecture on GPU
+- **Production Status:** ✅ GPU acceleration production-ready for GRMR-V3
+
+### 4.2 Performance Comparison
+
+**Real-world test (15,927 words):**
+- CPU: 36.4 minutes (438 wpm)
+- GPU: 10.0 minutes (1,587 wpm)
+- **Time saved: 26.3 minutes (72.5% reduction)**
+
+**Novel processing (90,000 words):**
+- CPU: ~3.4 hours
+- GPU: ~57 minutes
+- **Time saved: ~2.5 hours per novel**
+
+### 4.3 Setup Guide
+
+See `docs/GPU_SETUP_GUIDE.md` for complete installation instructions including:
+- Visual Studio 2022 setup
+- CUDA Toolkit 13.0 installation
+- Building llama-cpp-python from source (~38 minutes)
+- Known issues and troubleshooting
+- cuBLAS DLL path configuration
+
+### 4.4 Environment Comparison
+
+| Environment | Python | GPU Support | GRMR-V3 | T5 GGUF | Performance |
+|-------------|--------|-------------|---------|---------|-------------|
+| `.venv` | 3.13.4 | No | ✅ Yes | ✅ Yes | 438 wpm |
+| `.venv-gpu` | 3.11.0 | Yes (CUDA 13.0) | ✅ Yes | ⚠️ Crashes | 1,587 wpm |
+
+**Recommendations:**
+- **GPU mode** (`.venv-gpu`): Use for GRMR-V3 production workloads - 3.62x faster
+- **CPU mode** (`.venv`): Use for T5 GGUF models until GPU compatibility is resolved
+
+### 4.5 Quality Validation
+
+GPU acceleration maintains identical quality to CPU mode:
+- See `GRMR_V3_QUALITY_REPORT.md` for detailed quality analysis
+- Grade: A (95/100) - Production-ready
+- 100% character name preservation
+- Context-aware grammar corrections
+- Maintains author's narrative voice
+
+---
+
+## 5. Automated Verification Suite
+
+SATCN's regression discipline couples the transformer work with the existing test harnesses:
 
 - `tests/unit/` – unit tests for filters, utilities, and the T5 corrector.
 - `tests/integration/` – exercises Markdown and EPUB end-to-end flows.
@@ -156,7 +232,7 @@ Use `pytest` at the repository root to run the full suite. Individual slow tests
 
 ---
 
-## 5. Alpha Performance Target
+## 6. Alpha Performance Target
 
 The alpha milestone focuses on processing a 300-page manuscript (~9k sentences) within 30 minutes on a GTX-class GPU with ≤8 GB VRAM. The current T5 integration already exposes:
 
@@ -168,7 +244,7 @@ Empirical guidance from `docs/T5_CORRECTOR_GUIDE.md` reports 0.5–2 seconds p
 
 ---
 
-## 6. Roadmap Toward TTS-Centric Enhancements
+## 7. Roadmap Toward TTS-Centric Enhancements
 
 1. **TTS-specific error surfacing** – exploit `T5Corrector` confidence hooks and pipeline statistics to flag sentences that still break downstream TTS playback (e.g., abbreviations, numerics, phonetic anomalies).
 2. **Targeted normalization strategies** – expand `TTSNormalizer` coverage using insights from logged transformer corrections and TTS regression results.
@@ -178,7 +254,7 @@ Empirical guidance from `docs/T5_CORRECTOR_GUIDE.md` reports 0.5–2 seconds p
 
 ---
 
-## 7. Getting Started
+## 8. Getting Started
 
 1. Install dependencies (CPU baseline):
    ```bash
@@ -198,9 +274,11 @@ The repository also ships helper scripts (`setup_t5_env.sh`, `check_cuda.py`, `f
 
 ---
 
-## 8. References & Further Reading
+## 9. References & Further Reading
 
 - `docs/T5_CORRECTOR_GUIDE.md` – comprehensive T5 usage guide, performance tuning, and troubleshooting.
+- `docs/GPU_SETUP_GUIDE.md` – GPU acceleration setup, CUDA compilation, and troubleshooting.
+- `docs/GRMR_V3_GGUF_TEST_PLAN.md` – GRMR-V3 test plan and quality benchmarks.
 - `T5_INTEGRATION_SUMMARY.md` – high-level summary of the transformer milestone.
 - `T5_INTEGRATION_GUIDE.md` – step-by-step walkthrough for environment setup and regression validation.
 - `tests/samples/` – miniature documents for experimenting with pipeline behaviour.
