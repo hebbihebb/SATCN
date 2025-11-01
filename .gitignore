@@ -109,3 +109,7 @@ dmypy.json
 *.bak
 *~
 venv_backups/
+
+# Large screenshots (>1MB, exceeds git pre-commit size limit)
+# Note: screenshot-gui.png is already committed (smaller)
+docs/screenshot-llm-gui.png

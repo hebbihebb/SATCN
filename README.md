@@ -6,10 +6,10 @@
 
 **Local-only text correction pipeline for preprocessing long-form documents before TTS playback.**
 
-![SATCN GUI Screenshot](docs/screenshot-gui.png)
+![SATCN GUI Screenshot](docs/screenshot-gui.jpg)
 *SATCN Pipeline GUI - Configure filters, view real-time logs, process documents*
 
-![SATCN LLM GUI Screenshot](docs/screenshot-llm-gui.png)
+![SATCN LLM GUI Screenshot](docs/screenshot-llm-gui.jpg)
 *SATCN LLM GUI - Model management, HuggingFace downloader, GPU-accelerated correction*
 
 ## What It Is
