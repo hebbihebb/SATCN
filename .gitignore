@@ -108,3 +108,7 @@ dmypy.json
 # Backup files
 *.bak
 *~
+venv_backups/
+
+# Screenshots (too large for git)
+docs/screenshot-*.png
