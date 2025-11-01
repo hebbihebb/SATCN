@@ -114,9 +114,16 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
         # Determine GPU layers based on device
         if device is None:
             # Auto-detect: try to use GPU if available
-            import torch
+            # Note: In .venv-gpu, we always have CUDA support (llama-cpp-python with CUDA)
+            # No need to check torch.cuda.is_available()
+            try:
+                import torch
 
-            use_gpu = torch.cuda.is_available()
+                use_gpu = torch.cuda.is_available()
+            except ImportError:
+                # PyTorch not installed, but llama-cpp-python may still have CUDA
+                # In .venv-gpu, assume CUDA is available
+                use_gpu = True  # llama-cpp-python will handle fallback if needed
             device = "cuda" if use_gpu else "cpu"
 
         self.device = device
