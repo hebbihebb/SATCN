@@ -231,7 +231,7 @@ class SATCNLLMGui:
         # Run controls
         controls_frame = ctk.CTkFrame(frame, fg_color="transparent")
         controls_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=(4, 8))
-        controls_frame.columnconfigure(1, weight=1)
+        controls_frame.columnconfigure(2, weight=1)  # Progress bar column expands
 
         self.run_btn = ctk.CTkButton(
             controls_frame,

@@ -113,27 +113,56 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
 
         # Determine GPU layers based on device
         if device is None:
-            # Auto-detect: try to use GPU if available
-            # Note: In .venv-gpu, we always have CUDA support (llama-cpp-python with CUDA)
-            # No need to check torch.cuda.is_available()
-            try:
-                import torch
+            # Auto-detect: Check if llama-cpp-python was built with CUDA support
+            use_gpu = False
 
-                use_gpu = torch.cuda.is_available()
-            except ImportError:
-                # PyTorch not installed, but llama-cpp-python may still have CUDA
-                # In .venv-gpu, assume CUDA is available
-                use_gpu = True  # llama-cpp-python will handle fallback if needed
+            # First, check if llama-cpp-python has GPU support by inspecting parameters
+            import inspect
+
+            llama_sig = inspect.signature(Llama.__init__)
+            has_gpu_param = "n_gpu_layers" in llama_sig.parameters
+
+            if has_gpu_param:
+                self.logger.info(
+                    "llama-cpp-python has n_gpu_layers parameter - CUDA build detected"
+                )
+
+                # Check if CUDA is actually available
+                try:
+                    import torch
+
+                    if torch.cuda.is_available():
+                        use_gpu = True
+                        self.logger.info(f"PyTorch CUDA available: {torch.cuda.get_device_name(0)}")
+                    else:
+                        self.logger.warning("PyTorch CUDA not available - falling back to CPU")
+                except ImportError:
+                    # PyTorch not installed, but llama-cpp-python may still have CUDA
+                    # Try to use GPU anyway - llama-cpp will report if it fails
+                    use_gpu = True
+                    self.logger.info(
+                        "PyTorch not installed - attempting GPU via llama-cpp-python CUDA"
+                    )
+            else:
+                self.logger.warning(
+                    "llama-cpp-python built without GPU support (missing n_gpu_layers parameter)"
+                )
+                self.logger.warning(
+                    'Install CUDA-enabled build: pip install llama-cpp-python --force-reinstall --no-cache-dir --config-settings cmake.args="-DGGML_CUDA=ON"'
+                )
+
             device = "cuda" if use_gpu else "cpu"
 
         self.device = device
         n_gpu_layers = -1 if device == "cuda" else 0
 
         if device == "cuda":
-            self.logger.info("Using CUDA for GRMR-V3 inference (GPU acceleration)")
+            self.logger.info(
+                f"Initializing GRMR-V3 with GPU acceleration (n_gpu_layers={n_gpu_layers})"
+            )
         else:
             self.logger.warning(
-                "Using CPU for GRMR-V3 inference (will be slower). "
+                "Initializing GRMR-V3 with CPU inference (will be slower). "
                 "For GPU acceleration, reinstall llama-cpp-python with CUDA support."
             )
 
@@ -148,11 +177,23 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
                 n_gpu_layers=n_gpu_layers,
                 use_mlock=True,  # Lock model in RAM for better performance
                 use_mmap=True,  # Memory-map the model file
-                verbose=False,  # Suppress llama.cpp internal logs
+                verbose=True,  # Enable verbose to see GPU usage logs
             )
 
             load_time = time.time() - start_time
             self.logger.info(f"GRMR-V3 model loaded successfully in {load_time:.2f}s")
+
+            # Verify GPU usage
+            if device == "cuda":
+                self.logger.info(
+                    "⚠️  IMPORTANT: Check console output above for 'CUDA' or 'GPU' messages"
+                )
+                self.logger.info(
+                    "⚠️  If you see 'llama_model_load' without GPU mentions, llama-cpp-python is using CPU"
+                )
+                self.logger.info(
+                    "⚠️  GPU usage should show 'ggml_cuda_init' or similar CUDA initialization messages"
+                )
 
         except Exception as e:
             self.logger.error(f"Failed to load GRMR-V3 model: {e}")
