@@ -9,6 +9,9 @@
 ![SATCN GUI Screenshot](docs/screenshot-gui.png)
 *SATCN Pipeline GUI - Configure filters, view real-time logs, process documents*
 
+![SATCN LLM GUI Screenshot](docs/screenshot-llm-gui.png)
+*SATCN LLM GUI - Model management, HuggingFace downloader, GPU-accelerated correction*
+
 ## What It Is
 
 SATCN is a privacy-first document correction tool that:
@@ -74,7 +77,10 @@ satcn-gui
 
 ### GUI Features ✨
 
-The new **SATCN Pipeline GUI** provides a modern, user-friendly interface with:
+**Two GUI Options:**
+
+#### 1. SATCN Pipeline GUI (Full pipeline control)
+The **SATCN Pipeline GUI** provides a modern, user-friendly interface with:
 
 - **Complete grammar engine selection**: LanguageTool, GRMR-V3 GGUF, T5 Transformer, or None
 - **Visual configuration**: Radio buttons for engines, contextual mode dropdown
@@ -90,10 +96,29 @@ Launch with:
 ```bash
 satcn-gui                           # Recommended
 python -m satcn.gui.satcn_gui       # Alternative
-launch_satcn_gui.bat                # Windows double-click
+launchers/launch_satcn_gui.bat      # Windows double-click
 ```
 
-Configuration saved to: `~/.config/satcn/gui_config.json`
+#### 2. SATCN LLM GUI (Model-focused interface) 🆕
+The **SATCN LLM GUI** focuses on LLM model management and GPU-accelerated correction:
+
+- **Model selection**: Browse and select local GGUF models (Q4, Q8, etc.)
+- **HuggingFace integration**: Download models directly from HuggingFace Hub
+- **Multi-file selection**: Choose from multiple quantizations in repos
+- **GPU detection**: Automatic CUDA detection and status display
+- **Success dialog**: View correction stats and side-by-side diff viewer
+- **Parameter tuning**: Adjust temperature, max_tokens for fine control
+- **Progress tracking**: Real-time paragraph-by-paragraph processing
+
+Launch with:
+```bash
+python launchers/launch_llm_gui.py  # Recommended
+launchers/launch_llm_gui.bat        # Windows double-click
+```
+
+See [`docs/LLM_GUI_README.md`](docs/LLM_GUI_README.md) for detailed LLM GUI documentation.
+
+Configuration saved to: `~/.config/satcn/gui_config.json` and `~/.config/satcn/llm_gui_config.json`
 
 ### GPU Acceleration (Optional)
 
