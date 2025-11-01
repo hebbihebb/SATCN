@@ -3,14 +3,19 @@ import logging
 import os
 import time
 
-from satcn.core.filters import GRMR_V3_AVAILABLE
+from satcn.core.filters import GRMR_V3_AVAILABLE, T5_AVAILABLE
 from satcn.core.filters.epub_parser import EpubOutputGenerator, EpubParserFilter
 from satcn.core.filters.grammar_filter_safe import GrammarCorrectionFilterSafe
 from satcn.core.filters.markdown_parser import MarkdownOutputGenerator, MarkdownParserFilter
 from satcn.core.filters.spelling_filter import SpellingCorrectionFilter
-from satcn.core.filters.t5_correction_filter import T5CorrectionFilter
 from satcn.core.filters.tts_normalizer import TTSNormalizer
 from satcn.core.utils.logging_setup import setup_logging
+
+# Conditional import for T5
+if T5_AVAILABLE:
+    from satcn.core.filters.t5_correction_filter import T5CorrectionFilter
+else:
+    T5CorrectionFilter = None
 
 # Conditional import for GRMR-V3
 if GRMR_V3_AVAILABLE:
@@ -89,6 +94,11 @@ class PipelineRunner:
         filters = [(parser_filter, False)]
 
         if self.use_t5:
+            if not T5_AVAILABLE:
+                self.logger.error("T5 correction requested but T5 is not available!")
+                self.logger.error("Install T5 dependencies: pip install transformers torch")
+                raise RuntimeError("T5 not available. Install: pip install transformers torch")
+
             self.logger.info(f"T5 correction enabled (mode: {self.t5_mode})")
 
             if self.t5_mode == "replace":

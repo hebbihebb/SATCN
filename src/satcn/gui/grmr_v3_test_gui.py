@@ -73,6 +73,7 @@ class GRMRV3TestGUI:
         self.cancel_flag = False
 
         self._create_widgets()
+        self._log_gpu_status()
 
     def _create_widgets(self):
         """Create all GUI widgets."""
@@ -198,6 +199,39 @@ class GRMRV3TestGUI:
             main_frame, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W
         )
         status_bar.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+
+    def _log_gpu_status(self):
+        """Log GPU availability on startup."""
+        gpu_info = []
+
+        # Check llama-cpp-python GPU support
+        try:
+            import llama_cpp  # noqa: F401
+
+            gpu_info.append("✓ llama-cpp-python installed (GRMR-V3 ready)")
+
+            # Try to detect CUDA
+            try:
+                import torch
+
+                if torch.cuda.is_available():
+                    device_name = torch.cuda.get_device_name(0)
+                    vram = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+                    gpu_info.append(f"✓ CUDA GPU: {device_name} ({vram:.1f} GB VRAM)")
+                    gpu_info.append("✓ GPU acceleration available for GRMR-V3")
+                else:
+                    gpu_info.append("⚠ PyTorch installed but no CUDA GPU detected")
+                    gpu_info.append("ℹ Will use CPU for inference")
+            except ImportError:
+                # No torch, but llama-cpp might still have CUDA
+                gpu_info.append("ℹ PyTorch not installed (GPU may still work via llama-cpp)")
+        except ImportError:
+            gpu_info.append("✗ llama-cpp-python not installed")
+            gpu_info.append("✗ GRMR-V3 filter will not work")
+
+        # Log to output window
+        startup_msg = "=== GPU STATUS ===\n" + "\n".join(gpu_info) + "\n==================\n\n"
+        self.output_text.insert(tk.END, startup_msg)
 
     def browse_file(self):
         """Browse for input file."""

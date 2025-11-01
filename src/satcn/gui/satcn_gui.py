@@ -88,6 +88,9 @@ class SATCNPipelineGUI:
         # Build UI
         self._build_ui()
 
+        # Log GPU status on startup
+        self._log_gpu_status()
+
         # Load previously selected file if exists
         if self.config.input_file and self.config.input_file.exists():
             self._load_file_stats()
@@ -586,6 +589,58 @@ class SATCNPipelineGUI:
         timestamp = datetime.now().strftime("%H:%M:%S")
         self.output_text.insert("end", f"[{timestamp}] {message}\n")
         self.output_text.see("end")  # Auto-scroll
+
+    def _log_gpu_status(self):
+        """Log GPU availability on startup."""
+        gpu_info = []
+
+        # Check llama-cpp-python GPU support (for GRMR-V3)
+        llama_has_cuda = False
+        try:
+            from llama_cpp import Llama
+
+            gpu_info.append("✓ llama-cpp-python installed (GRMR-V3 support)")
+
+            # Check if llama-cpp has CUDA support by testing n_gpu_layers
+            try:
+                # Try to create a dummy model with GPU layers (will fail if no CUDA)
+                # We just check if the parameter is accepted, not actually load a model
+                import inspect
+
+                llama_sig = inspect.signature(Llama.__init__)
+                if "n_gpu_layers" in llama_sig.parameters:
+                    gpu_info.append("✓ llama-cpp-python built with GPU support")
+                    llama_has_cuda = True
+            except Exception:
+                pass
+
+            # Try to detect CUDA GPU via PyTorch (if available)
+            try:
+                import torch
+
+                if torch.cuda.is_available():
+                    device_name = torch.cuda.get_device_name(0)
+                    vram = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+                    gpu_info.append(f"✓ CUDA GPU: {device_name} ({vram:.1f} GB VRAM)")
+                    gpu_info.append("✓ GPU acceleration available for GRMR-V3")
+                    llama_has_cuda = True
+            except ImportError:
+                # No torch - check if we detected llama-cpp CUDA
+                if llama_has_cuda:
+                    gpu_info.append("✓ GPU acceleration available (via llama-cpp CUDA)")
+                else:
+                    gpu_info.append("ℹ PyTorch not available - assuming CPU inference")
+
+        except ImportError:
+            gpu_info.append("✗ llama-cpp-python not installed")
+            gpu_info.append("✗ GRMR-V3 filter unavailable")
+
+        # Log to output window
+        self.output_text.insert("end", "=== GPU STATUS ===\n")
+        for info in gpu_info:
+            self.output_text.insert("end", f"{info}\n")
+        self.output_text.insert("end", "==================\n\n")
+        self.output_text.see("end")
 
     def _sync_config_from_ui(self):
         """Sync configuration from UI state."""

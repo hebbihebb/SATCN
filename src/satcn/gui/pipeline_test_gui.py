@@ -116,6 +116,9 @@ class PipelineTestGUI:
         self._current_run_start_time: datetime | None = None
         self._current_estimated_seconds: int | None = None
 
+        # Log GPU availability on startup
+        self._log_gpu_status()
+
         self._poll_output_queue()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
@@ -186,6 +189,38 @@ class PipelineTestGUI:
 
         self.status_label = ttk.Label(self.root, textvariable=self.status_var, anchor="w")
         self.status_label.pack(fill="x", padx=12, pady=(0, 12))
+
+    # ------------------------------------------------------------------
+    # GPU Detection
+    # ------------------------------------------------------------------
+    def _log_gpu_status(self) -> None:
+        """Log GPU availability on startup."""
+        gpu_info = []
+
+        # Check llama-cpp-python GPU support
+        try:
+            import llama_cpp  # noqa: F401
+
+            gpu_info.append("✓ llama-cpp-python installed (GRMR-V3 support)")
+
+            # Try to detect CUDA
+            try:
+                import torch
+
+                if torch.cuda.is_available():
+                    device_name = torch.cuda.get_device_name(0)
+                    gpu_info.append(f"✓ CUDA GPU detected: {device_name}")
+                else:
+                    gpu_info.append("⚠ PyTorch installed but no CUDA GPU detected")
+            except ImportError:
+                # No torch, but llama-cpp might have CUDA
+                gpu_info.append("ℹ PyTorch not installed (checking llama-cpp CUDA)")
+        except ImportError:
+            gpu_info.append("⚠ llama-cpp-python not installed (GRMR-V3 unavailable)")
+
+        # Log to GUI
+        startup_msg = "=== GPU Status ===\n" + "\n".join(gpu_info) + "\n==================\n\n"
+        self._append_log(startup_msg)
 
     # ------------------------------------------------------------------
     # Event handlers

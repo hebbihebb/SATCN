@@ -1,0 +1,7 @@
+# Ignore all test result files
+*.json
+*.txt
+*.md
+
+# But track the .gitignore itself
+!.gitignore
