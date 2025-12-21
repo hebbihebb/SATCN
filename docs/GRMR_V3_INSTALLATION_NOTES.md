@@ -43,6 +43,38 @@ Successfully integrated the GRMR-V3-Q4B.Q4_K_M.gguf grammar correction model int
 - Already excluded from git via `*.gguf` pattern in `.gitignore`
 - Context trained: 32,768 tokens (using 4,096 for inference)
 
+### Model Path Resolution (Updated)
+
+The model path is now automatically detected from multiple locations, solving the issue where the tool only worked when run from specific directories.
+
+**Search order:**
+1. Explicit path via `--grmr-model-path` CLI argument
+2. Environment variable: `SATCN_GRMR_MODEL_PATH`
+3. Config file: `~/.satcn/llm_gui_config.json` (set via GUI)
+4. Virtual environment: `.venv/.GRMR-V3-Q4B-GGUF/`
+5. Current working directory: `.GRMR-V3-Q4B-GGUF/`
+6. User config directory: `~/.satcn/models/`
+7. Package installation directory
+
+**Usage examples:**
+```bash
+# Auto-detect (searches all locations)
+satcn --use-grmr input.md
+
+# Explicit path
+satcn --use-grmr --grmr-model-path /path/to/model.gguf input.md
+
+# Environment variable
+export SATCN_GRMR_MODEL_PATH=/path/to/model.gguf
+satcn --use-grmr input.md
+
+# Via GUI (saves to config file)
+python -m satcn.gui.llm_gui
+# Select model in GUI, path is saved to ~/.satcn/llm_gui_config.json
+```
+
+This fix addresses GitHub issue where users couldn't run the tool from arbitrary directories even with venv activated.
+
 ### Integration Test Results
 
 ✅ **All tests passed** (`test_grmr_v3_integration.py`)

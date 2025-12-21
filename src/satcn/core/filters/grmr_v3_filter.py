@@ -13,6 +13,8 @@ Context window: 4096 tokens (vs T5's 512)
 """
 
 import logging
+import os
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -26,15 +28,111 @@ except ImportError:
     Llama = None
 
 
+def find_model_path(
+    explicit_path: str | Path | None = None,
+    model_filename: str = "GRMR-V3-Q4B.Q4_K_M.gguf",
+) -> Path | None:
+    """
+    Search for the GGUF model file in multiple locations.
+
+    Search order:
+    1. Explicit path (if provided)
+    2. Environment variable: SATCN_GRMR_MODEL_PATH
+    3. Config file: ~/.satcn/llm_gui_config.json (model_path field)
+    4. Virtual environment: {venv}/.GRMR-V3-Q4B-GGUF/
+    5. Current working directory: .GRMR-V3-Q4B-GGUF/
+    6. User config directory: ~/.satcn/models/
+    7. Package installation directory
+
+    Args:
+        explicit_path: Explicitly provided model path
+        model_filename: Name of the model file to search for
+
+    Returns:
+        Path to the model file if found, None otherwise
+    """
+    search_paths = []
+
+    # 1. Explicit path
+    if explicit_path:
+        explicit = Path(explicit_path)
+        if explicit.is_file():
+            return explicit
+        # If explicit path is a directory, look for the model file inside
+        if explicit.is_dir():
+            search_paths.append(explicit / model_filename)
+
+    # 2. Environment variable
+    env_path = os.environ.get("SATCN_GRMR_MODEL_PATH")
+    if env_path:
+        env_path_obj = Path(env_path)
+        if env_path_obj.is_file():
+            return env_path_obj
+        if env_path_obj.is_dir():
+            search_paths.append(env_path_obj / model_filename)
+
+    # 3. Config file
+    config_path = Path.home() / ".satcn" / "llm_gui_config.json"
+    if config_path.exists():
+        try:
+            import json
+
+            with open(config_path) as f:
+                config = json.load(f)
+                if config.get("model_path"):
+                    config_model_path = Path(config["model_path"])
+                    if config_model_path.exists():
+                        search_paths.append(config_model_path)
+        except Exception:
+            pass  # Ignore config parsing errors
+
+    # 4. Virtual environment directory
+    # Check if we're in a virtual environment
+    if hasattr(sys, "real_prefix") or (
+        hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
+    ):
+        # We're in a venv
+        venv_path = Path(sys.prefix)
+        search_paths.append(venv_path / ".GRMR-V3-Q4B-GGUF" / model_filename)
+
+    # 5. Current working directory
+    search_paths.append(Path.cwd() / ".GRMR-V3-Q4B-GGUF" / model_filename)
+
+    # 6. User config directory
+    search_paths.append(Path.home() / ".satcn" / "models" / model_filename)
+
+    # 7. Package installation directory
+    try:
+        # Get the directory where this module is installed
+        package_dir = Path(__file__).parent.parent.parent.parent
+        search_paths.append(package_dir / ".GRMR-V3-Q4B-GGUF" / model_filename)
+    except Exception:
+        pass
+
+    # Search all paths
+    for path in search_paths:
+        if path.exists() and path.is_file():
+            return path
+
+    return None
+
+
 class GRMRV3GrammarFilter:
     """
     A filter that uses a local GGUF model for grammar and spelling correction.
 
     This filter wraps the llama.cpp runtime to perform deterministic,
     context-aware grammar corrections using a quantized model file.
-    """
 
-    DEFAULT_MODEL_PATH = Path(".GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf")
+    The model path is automatically searched in multiple locations:
+    1. Explicit path (if provided via model_path parameter)
+    2. Environment variable: SATCN_GRMR_MODEL_PATH
+    3. Config file: ~/.satcn/llm_gui_config.json
+    4. Virtual environment directory
+    5. Current working directory
+    6. User config directory (~/.satcn/models/)
+    7. Package installation directory
+    """
 
     # Prompt template for grammar correction
     PROMPT_TEMPLATE = """### Instruction
@@ -68,7 +166,7 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
         For more deterministic/conservative corrections, use temperature=0.1.
 
         Args:
-            model_path: Path to the .gguf model file (default: .GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf)
+            model_path: Path to the .gguf model file. If not provided, searches multiple locations automatically.
             n_ctx: Context window size (default: 4096 tokens)
             max_new_tokens: Maximum tokens to generate per correction (default: 256)
             temperature: Sampling temperature - 0.1 for deterministic (default: 0.1)
@@ -91,14 +189,35 @@ You are a copy editor. Fix grammar, spelling, and punctuation while keeping char
                 "For GPU support, see installation instructions in requirements-grmr.txt"
             )
 
-        # Resolve model path
-        self.model_path = Path(model_path) if model_path else self.DEFAULT_MODEL_PATH
+        # Resolve model path using smart search
+        resolved_path = find_model_path(explicit_path=model_path)
 
-        if not self.model_path.exists():
-            raise FileNotFoundError(
-                f"GGUF model file not found at {self.model_path}\n"
-                f"Expected location: .GRMR-V3-Q4B-GGUF/GRMR-V3-Q4B.Q4_K_M.gguf"
+        if resolved_path is None:
+            # Provide helpful error message with search locations
+            search_locations = [
+                "1. Explicit path via --grmr-model-path CLI argument",
+                "2. Environment variable: SATCN_GRMR_MODEL_PATH",
+                "3. Config file: ~/.satcn/llm_gui_config.json",
+                "4. Virtual environment: {venv}/.GRMR-V3-Q4B-GGUF/",
+                "5. Current directory: .GRMR-V3-Q4B-GGUF/",
+                "6. User config: ~/.satcn/models/",
+                "7. Package install directory",
+            ]
+            error_msg = (
+                f"GGUF model file not found.\n\n"
+                f"Searched the following locations:\n" + "\n".join(search_locations) + "\n\n"
+                f"Solutions:\n"
+                f"  • Download the model and place it in one of the locations above\n"
+                f"  • Use --grmr-model-path to specify a custom location\n"
+                f"  • Set environment variable: export SATCN_GRMR_MODEL_PATH=/path/to/model.gguf\n"
+                f"  • Configure via GUI: Model path will be saved to ~/.satcn/llm_gui_config.json"
             )
+            if model_path:
+                error_msg = f"Model not found at specified path: {model_path}\n\n" + error_msg
+            raise FileNotFoundError(error_msg)
+
+        self.model_path = resolved_path
+        self.logger.info(f"Using model at: {self.model_path}")
 
         # Store generation parameters (following GRMR-V3-G4B model card recommendations)
         self.n_ctx = n_ctx

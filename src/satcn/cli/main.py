@@ -34,6 +34,11 @@ def main():
         help="GRMR-V3 integration mode",
     )
     parser.add_argument(
+        "--grmr-model-path",
+        type=str,
+        help="Path to GRMR-V3 GGUF model file (optional, auto-detected if not specified)",
+    )
+    parser.add_argument(
         "--use-t5",
         action="store_true",
         help="Use T5 transformer for grammar correction (experimental)",
@@ -62,6 +67,7 @@ def main():
             t5_mode=args.t5_mode,
             use_grmr=args.use_grmr,
             grmr_mode=args.grmr_mode,
+            grmr_model_path=args.grmr_model_path,
         )
         runner.run()
         print(

@@ -31,6 +31,7 @@ class PipelineRunner:
         t5_mode="replace",
         use_grmr=False,
         grmr_mode="replace",
+        grmr_model_path=None,
     ):
         """
         Initialize the SATCN pipeline runner.
@@ -45,6 +46,7 @@ class PipelineRunner:
                      - "supplement": Keep existing filters, add T5
             use_grmr: Enable GRMR-V3 GGUF-based correction (experimental)
             grmr_mode: GRMR-V3 integration mode (same options as T5)
+            grmr_model_path: Path to GRMR-V3 model file (optional, auto-detected if not specified)
         """
         self.input_filepath = input_filepath
         self.fail_fast = fail_fast
@@ -52,6 +54,7 @@ class PipelineRunner:
         self.t5_mode = t5_mode
         self.use_grmr = use_grmr
         self.grmr_mode = grmr_mode
+        self.grmr_model_path = grmr_model_path
         self.logger = setup_logging()
 
         # Validate GRMR-V3 availability
@@ -125,11 +128,15 @@ class PipelineRunner:
 
             if self.grmr_mode == "replace":
                 # Replace spelling+grammar with GRMR-V3 only (simplest)
-                filters.append((GRMRV3GrammarFilter(), False))  # GRMR-V3 doesn't return stats tuple
+                filters.append(
+                    (GRMRV3GrammarFilter(model_path=self.grmr_model_path), False)
+                )  # GRMR-V3 doesn't return stats tuple
 
             elif self.grmr_mode == "hybrid":
                 # GRMR-V3 first, then rule-based cleanup
-                filters.append((GRMRV3GrammarFilter(), False))  # GRMR-V3 doesn't return stats tuple
+                filters.append(
+                    (GRMRV3GrammarFilter(model_path=self.grmr_model_path), False)
+                )  # GRMR-V3 doesn't return stats tuple
                 filters.append((SpellingCorrectionFilter(), False))
                 filters.append((GrammarCorrectionFilterSafe(), True))
 
@@ -137,7 +144,9 @@ class PipelineRunner:
                 # Keep existing filters, add GRMR-V3 at the end
                 filters.append((SpellingCorrectionFilter(), False))
                 filters.append((GrammarCorrectionFilterSafe(), True))
-                filters.append((GRMRV3GrammarFilter(), False))  # GRMR-V3 doesn't return stats tuple
+                filters.append(
+                    (GRMRV3GrammarFilter(model_path=self.grmr_model_path), False)
+                )  # GRMR-V3 doesn't return stats tuple
 
             else:
                 raise ValueError(f"Unknown GRMR-V3 mode: {self.grmr_mode}")
@@ -264,6 +273,11 @@ Note: Cannot use --use-t5 and --use-grmr simultaneously.
         default="replace",
         help="GRMR-V3 integration mode (default: replace)",
     )
+    parser.add_argument(
+        "--grmr-model-path",
+        type=str,
+        help="Path to GRMR-V3 GGUF model file (optional, auto-detected if not specified)",
+    )
     args = parser.parse_args()
 
     try:
@@ -274,6 +288,7 @@ Note: Cannot use --use-t5 and --use-grmr simultaneously.
             t5_mode=args.t5_mode,
             use_grmr=args.use_grmr,
             grmr_mode=args.grmr_mode,
+            grmr_model_path=args.grmr_model_path,
         )
         result = pipeline.run()
         if result and "output_filepath" in result:
