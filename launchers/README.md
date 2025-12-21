@@ -10,18 +10,52 @@ Quick-launch utilities for SATCN's GUI applications across all platforms.
 
 | Launcher | Purpose | Status |
 |----------|---------|--------|
-| **`launch_satcn_gui.bat`** | 🎨 Main Pipeline GUI (production) | ⭐ Recommended |
-| **`launch_llm_gui.bat`** | 🤖 LLM Model GUI | 🆕 New |
-| **`run_grmr_v3_gui.bat`** | 🔬 GRMR-V3 Test GUI | Testing |
-| **`run_test_gui.bat`** | 🧪 Pipeline Test GUI | Legacy |
+| **`launch_satcn_gui.bat`** | 🎨 Main Pipeline GUI (production) | ⭐ Updated |
+| **`launch_llm_gui.bat`** | 🤖 LLM Model GUI (GPU-enabled) | ✅ Ready |
+| **`run_grmr_v3_gui.bat`** | 🔬 GRMR-V3 Test GUI | ✅ Fixed |
+| **`run_test_gui.bat`** | 🧪 Pipeline Test GUI | ✅ Fixed |
+| **`setup_gpu_env.bat`** | ⚙️ Setup GPU environment | ✅ Enhanced |
+| **`validate_installation.bat`** | ✔️ Validate installation | 🆕 New |
 
-### 🐧🍎 Cross-Platform Launchers (.py files)
+**All batch files now include:**
+- ✅ Python existence checking
+- ✅ Automatic package installation if missing
+- ✅ Better error messages
+- ✅ Fail-safe error handling
 
-| Launcher | Purpose | Command |
-|----------|---------|---------|
-| **`launch_llm_gui.py`** | 🤖 LLM Model GUI | `python launchers/launch_llm_gui.py` |
-| **`launch_grmr_gui.py`** | 🔬 GRMR-V3 Test GUI | `python launchers/launch_grmr_gui.py` |
-| **`launch_pipeline_gui.py`** | 🧪 Pipeline Test GUI | `python launchers/launch_pipeline_gui.py` |
+### 🐧🍎 Linux/Mac Launchers (.sh files)
+
+| Launcher | Purpose | Status |
+|----------|---------|--------|
+| **`launch_satcn_gui.sh`** | 🎨 Main Pipeline GUI | 🆕 New |
+| **`launch_llm_gui.sh`** | 🤖 LLM Model GUI | 🆕 New |
+| **`launch_grmr_gui.sh`** | 🔬 GRMR-V3 Test GUI | 🆕 New |
+| **`validate_installation.sh`** | ✔️ Validate installation | 🆕 New |
+
+**Usage:**
+```bash
+# Make executable (first time only)
+chmod +x launchers/*.sh
+
+# Run
+./launchers/launch_satcn_gui.sh
+./launchers/launch_llm_gui.sh
+./launchers/launch_grmr_gui.sh
+```
+
+### 🐍 Cross-Platform Python Launchers (.py files)
+
+| Launcher | Purpose | Platform |
+|----------|---------|----------|
+| **`launch_llm_gui.py`** | 🤖 LLM Model GUI | All |
+| **`launch_grmr_gui.py`** | 🔬 GRMR-V3 Test GUI | All |
+| **`launch_pipeline_gui.py`** | 🧪 Pipeline Test GUI | All |
+
+**Usage:**
+```bash
+python3 launchers/launch_llm_gui.py    # Linux/Mac
+python launchers\launch_llm_gui.py     # Windows
+```
 
 ---
 
@@ -43,19 +77,38 @@ launchers\launch_llm_gui.bat
 
 ### Linux/Mac Users
 
+**Option 1: Shell scripts** (Easiest - 🆕 New!)
+```bash
+# Make executable (first time only)
+chmod +x launchers/*.sh
+
+# Main Pipeline GUI
+./launchers/launch_satcn_gui.sh
+
+# LLM Model GUI
+./launchers/launch_llm_gui.sh
+
+# GRMR-V3 Test GUI
+./launchers/launch_grmr_gui.sh
+
+# Validate installation
+./launchers/validate_installation.sh
+```
+
+**Option 2: Python scripts**
 ```bash
 # Main Pipeline GUI (recommended)
 satcn-gui
-# Alternative: python -m satcn.gui.satcn_gui
+# Alternative: python3 -m satcn.gui.satcn_gui
 
 # LLM Model GUI
-python launchers/launch_llm_gui.py
+python3 launchers/launch_llm_gui.py
 
 # GRMR-V3 Test GUI
-python launchers/launch_grmr_gui.py
+python3 launchers/launch_grmr_gui.py
 
 # Pipeline Test GUI
-python launchers/launch_pipeline_gui.py
+python3 launchers/launch_pipeline_gui.py
 ```
 
 ---

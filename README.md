@@ -86,6 +86,26 @@ Choose the engine that fits your needs:
 
 ## 🚀 Quick Start
 
+### 📋 Prerequisites
+
+Before installing SATCN, ensure you have:
+
+| Requirement | Details |
+|------------|---------|
+| **Python** | 3.11 or 3.12 (NOT 3.13 - GPU builds not yet available) |
+| **pip** | Included with Python |
+| **Git** | For cloning the repository |
+| **Linux** | System tkinter: `sudo apt-get install python3-tk` (Ubuntu/Debian) or `sudo dnf install python3-tkinter` (Fedora) |
+| **Windows** | Python from [python.org](https://python.org/downloads/) with "Add to PATH" enabled |
+
+**Check your Python version:**
+```bash
+python --version  # Should show 3.11.x or 3.12.x
+```
+
+📖 **Detailed installation instructions:** [INSTALLATION.md](INSTALLATION.md)
+🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
 ### 📥 Installation
 
 ```bash
@@ -143,6 +163,9 @@ satcn --use-grmr input.md
 # 🔄 Hybrid mode (AI + spell-check + rules)
 satcn --use-grmr --grmr-mode hybrid input.epub
 
+# 📍 Specify custom model path
+satcn --use-grmr --grmr-model-path /path/to/model.gguf input.md
+
 # 🔬 Use T5 transformer model
 satcn --use-t5 --grmr-mode replace input.md
 
@@ -151,6 +174,14 @@ satcn --use-grmr --fail-fast input.md
 ```
 
 **Output:** Creates `{input_name}_corrected.{ext}` in the same directory
+
+**Model Path Resolution:** GRMR-V3 models are automatically discovered from:
+- Explicit path via `--grmr-model-path`
+- Environment variable: `SATCN_GRMR_MODEL_PATH`
+- Config file: `~/.satcn/llm_gui_config.json`
+- Virtual environment: `.venv/.GRMR-V3-Q4B-GGUF/`
+- Current directory: `.GRMR-V3-Q4B-GGUF/`
+- User config: `~/.satcn/models/`
 
 ---
 

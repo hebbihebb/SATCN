@@ -18,7 +18,7 @@ This guide covers setting up GPU acceleration for llama-cpp-python to speed up g
 - 8GB+ VRAM recommended for larger models
 - Tested with: NVIDIA GeForce RTX 4060 Laptop GPU (8GB VRAM)
 
-### Software
+### Software (Windows)
 - Windows 10/11
 - Visual Studio 2022 Community Edition with C++ tools
   - Desktop development with C++ workload
@@ -30,7 +30,15 @@ This guide covers setting up GPU acceleration for llama-cpp-python to speed up g
   - CUDA 12.1 and earlier are NOT compatible with VS 2022's latest compiler
 - Python 3.11 (Python 3.13 GPU builds not yet available)
 
-## Installation Steps
+### Software (Linux)
+- Ubuntu 20.04+, Fedora 36+, or other modern Linux distribution
+- Build tools: `gcc`, `g++`, `cmake`, `make`
+- NVIDIA drivers (latest recommended)
+- CUDA Toolkit 12.0 or later
+  - Download from: https://developer.nvidia.com/cuda-downloads
+- Python 3.11 or 3.12
+
+## Installation Steps (Windows)
 
 ### 1. Install Prerequisites
 
@@ -92,6 +100,117 @@ $env:PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.0\bin\x64;$e
 # Test GPU support
 python -c "from llama_cpp import Llama; print('✅ GPU support working!')"
 ```
+
+---
+
+## Installation Steps (Linux)
+
+### 1. Check Prerequisites
+
+```bash
+# Check NVIDIA GPU
+nvidia-smi
+# Should show GPU name and driver version
+
+# Check CUDA installation
+nvcc --version
+# Should show CUDA version
+```
+
+### 2. Install Build Tools
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install build-essential cmake python3-dev
+```
+
+**Fedora/RHEL:**
+```bash
+sudo dnf install gcc gcc-c++ cmake python3-devel
+```
+
+### 3. Install NVIDIA Drivers and CUDA (if not installed)
+
+**Ubuntu:**
+```bash
+# Install NVIDIA drivers
+sudo apt-get install nvidia-driver-535
+
+# Install CUDA Toolkit
+# Download from: https://developer.nvidia.com/cuda-downloads
+# Or use package manager:
+sudo apt-get install nvidia-cuda-toolkit
+
+# Verify
+nvidia-smi
+nvcc --version
+```
+
+**Fedora:**
+```bash
+# Add RPM Fusion repository
+sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+
+# Install NVIDIA drivers
+sudo dnf install akmod-nvidia xorg-x11-drv-nvidia-cuda
+
+# Install CUDA
+# Download from: https://developer.nvidia.com/cuda-downloads
+```
+
+### 4. Create Virtual Environment (Optional but Recommended)
+
+```bash
+# Create venv
+python3 -m venv .venv-gpu
+
+# Activate
+source .venv-gpu/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+```
+
+### 5. Build llama-cpp-python with CUDA
+
+```bash
+# Install with CUDA support
+CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python --force-reinstall --no-cache-dir
+
+# This will compile from source (~10-20 minutes on Linux)
+```
+
+**Alternative: Use the setup script**
+
+```bash
+# Use the T5 environment setup script (includes CUDA support)
+bash scripts/setup/setup_t5_env.sh
+```
+
+### 6. Set CUDA Environment Variables
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc for persistence
+export CUDA_PATH=/usr/local/cuda
+export PATH=$CUDA_PATH/bin:$PATH
+export LD_LIBRARY_PATH=$CUDA_PATH/lib64:$LD_LIBRARY_PATH
+
+# Reload shell or source the file
+source ~/.bashrc
+```
+
+### 7. Verify Installation
+
+```bash
+# Test GPU support
+python3 -c "from llama_cpp import Llama; print('✅ GPU support working!')"
+
+# Monitor GPU usage while testing
+watch -n 1 nvidia-smi
+```
+
+---
 
 ## Usage
 
